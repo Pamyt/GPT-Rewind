@@ -1,0 +1,43 @@
+"""update raw chat data"""
+from typing import List, Dict
+
+
+
+def update_data(data_list: List[Dict[str, any]]) -> List[int]:
+    """
+    Update the data list by loading only the necessary fields and clean exsisting data.
+    """
+    new_data_list = []
+
+    for session in data_list:
+        name = session.get("name", "unknown")
+        insert_at = session.get("insert_at", "unknown")
+        update_at = session.get("update_at", "unknown")
+        longest_interaction_list = []
+
+        mapping = session.get("mapping", {})
+        numeric_keys = [k for k in mapping.keys() if k.isdigit()]
+        max_key = max(numeric_keys, key=int)
+
+        while True:
+            record = mapping.get(str(max_key), {})
+            if not record:
+                break
+            longest_interaction_list.append(record)
+
+            parent = record.get("parent", -1)
+            if parent.isdigit():
+                max_key = parent
+            else:
+                break
+        longest_interaction_list.reverse()
+
+
+        new_session = {
+            "name": name,
+            "insert_at": insert_at,
+            "update_at": update_at,
+            "longest_interaction_list": longest_interaction_list
+        }
+        new_data_list.append(new_session)
+    return new_data_list
