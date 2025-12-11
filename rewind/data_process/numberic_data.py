@@ -8,7 +8,7 @@ from rewind.data_process.style_data import polite_count, emoji_count
 from rewind.utils.data_utils import iterate_fragments, iterate_fragments_with_model
 from rewind.data_process.time_data import chat_frequency_distribution, chat_themost
 
-def session_count_stats(data_list: Dict[str, any]) -> Dict[str, any]:
+def session_count_stats(data_list: List[Dict[str, any]]) -> Dict[str, any]:
     """
     Get raw data session count
     """
@@ -27,9 +27,11 @@ def prefer_model_count(data_list: List[Dict[str, any]]) -> Dict[str, any]:
 
         for _, record in enumerate(interaction):
             fragments = record.get("message", {}).get("fragments", [])
-            if len(fragments) > 0:
-                interact_type = fragments[0].get("type", "")
-                if interact_type in ('THINK', 'RESPONSE'):
+            if len(fragments) == 0:
+                break
+            for fragment in fragments:
+                interact_type = fragment.get("type", "")
+                if interact_type in ('RESPONSE'):
                     model_type = record.get("message", {}).get("model", "unknown")
                     if model_type not in model_counts:
                         model_counts[model_type] = 0
