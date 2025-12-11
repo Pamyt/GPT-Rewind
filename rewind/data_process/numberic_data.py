@@ -7,12 +7,7 @@ from rewind.utils.language_utils import (chinese_dominant, count_code_block_lang
 
 def session_count_stats(data_list: Dict[str, any]) -> Dict[str, any]:
     """
-    basic_model_stats 的 Docstring
-
-    :param data: raw data
-    :type data: Dict[str, any]
-    :return: number of records
-    :rtype: Dict[str, any]
+    Get raw data session count
     """
     return {"session_count": len(data_list)}
 
