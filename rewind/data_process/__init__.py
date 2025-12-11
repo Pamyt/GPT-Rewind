@@ -12,6 +12,11 @@ from rewind.data_process.style_data import (
     polite_count,
     emoji_count
 )
+from rewind.data_process.time_data import (
+    chat_frequency_distribution,
+    chat_themost,
+    count_per_hour_distribution,
+)
 from rewind.data_process.update_data import update_data
 
 __all__ = ['load_json',
@@ -20,4 +25,7 @@ __all__ = ['load_json',
            'count_chars',
            'language_dominant_count',
            'code_language_count',
-           'ai_refuse_count',]
+           'ai_refuse_count',
+           "chat_frequency_distribution",
+           "chat_themost",
+           "count_per_hour_distribution",]

@@ -1,6 +1,8 @@
 """analyze time data"""
 from typing import List, Dict, Any
-from rewind.utils.time_utils import extract_time, delta_to_dhms
+from datetime import time
+from dateutil import parser
+from rewind.utils.time_utils import delta_to_dhms
 
 def chat_frequency_distribution(data_list: List[Dict[str, Any]]) -> Dict[Any, Any]:
     """analyze chat frequency distribution"""
@@ -81,7 +83,9 @@ def _find_longest_duration_session(data_list: List[Dict[str, Any]]) -> tuple:
 
 
 def _find_earliest_latest_sessions(data_list: List[Dict[str, Any]]) -> tuple:
-    """find the earliest and latest sessions"""
+    """find the earliest and latest sessions using 6 AM as day boundary"""
+
+
     earliest_time = None
     earliest_session = None
     latest_time = None
@@ -90,15 +94,29 @@ def _find_earliest_latest_sessions(data_list: List[Dict[str, Any]]) -> tuple:
     for session in data_list:
         inserted_at = session.get("inserted_at", "")
         if inserted_at:
-            chat_start_time = extract_time(inserted_at)
-            if earliest_time is None or chat_start_time < earliest_time:
-                earliest_time = chat_start_time
-                earliest_session = session
-            if latest_time is None or chat_start_time > latest_time:
-                latest_time = chat_start_time
-                latest_session = session
+            # Parse the ISO string to datetime object
+            datetime_obj = parser.isoparse(inserted_at)
+            chat_time = datetime_obj.time()
 
-    return earliest_session, earliest_time, latest_session, latest_time
+            # For earliest: find the earliest time after 6 AM
+            if chat_time >= time(6, 0):
+                if earliest_time is None or chat_time < earliest_time:
+                    earliest_time = chat_time
+                    earliest_session = session
+
+            # For latest: find the latest time before 6 AM
+            if chat_time < time(6, 0):
+                if latest_time is None or chat_time > latest_time:
+                    latest_time = chat_time
+                    latest_session = session
+
+    # Convert time objects to string format
+    earliest_time_str = f"{earliest_time.hour:02}:{earliest_time.minute:02}:\
+        {earliest_time.second:02}" if earliest_time else None
+    latest_time_str = f"{latest_time.hour:02}:{latest_time.minute:02}:\
+        {latest_time.second:02}" if latest_time else None
+
+    return earliest_session, earliest_time_str, latest_session, latest_time_str
 
 
 def chat_themost(data_list: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -123,3 +141,46 @@ def chat_themost(data_list: List[Dict[str, Any]]) -> Dict[str, Any]:
         "latest_session": latest_session,
         "latest_time": latest_time
     }
+
+
+def count_per_hour_distribution(data_list: List[Dict[str, Any]]) -> Dict[Any, Any]:
+    """Calculate the distribution of sessions across 24 hours of the day."""
+    hour_distribution = {hour: 0 for hour in range(24)}
+
+    for session in data_list:
+        inserted_at = session.get("inserted_at", "")
+        updated_at = session.get("updated_at", "")
+
+        if not inserted_at or not updated_at:
+            continue
+
+        # Parse ISO datetime strings
+        start_time = parser.isoparse(inserted_at)
+        end_time = parser.isoparse(updated_at)
+
+        # Get the start and end hours
+        start_hour = start_time.hour
+        end_hour = end_time.hour
+
+        # Handle sessions within the same hour
+        if start_time.date() == end_time.date() and start_hour == end_hour:
+            hour_distribution[start_hour] += 1
+            continue
+
+        # Handle sessions that span multiple hours/days
+        current_time = start_time
+
+        while current_time <= end_time:
+            current_hour = current_time.hour
+            hour_distribution[current_hour] += 1
+
+            # Move to the next hour
+            current_time = current_time.replace(minute=0, second=0, microsecond=0)
+            current_time = current_time.replace(hour=current_hour + 1)
+
+            # If we've moved past the end time, break
+            if current_time > end_time:
+                break
+
+
+    return hour_distribution
