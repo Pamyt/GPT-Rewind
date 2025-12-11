@@ -10,9 +10,9 @@ def update_data(data_list: List[Dict[str, any]]) -> List[int]:
     new_data_list = []
 
     for session in data_list:
-        name = session.get("name", "unknown")
-        insert_at = session.get("insert_at", "unknown")
-        update_at = session.get("update_at", "unknown")
+        title = session.get("title", "unknown")
+        inserted_at = session.get("inserted_at", "unknown")
+        updated_at = session.get("updated_at", "unknown")
         longest_interaction_list = []
 
         mapping = session.get("mapping", {})
@@ -34,9 +34,9 @@ def update_data(data_list: List[Dict[str, any]]) -> List[int]:
 
 
         new_session = {
-            "name": name,
-            "insert_at": insert_at,
-            "update_at": update_at,
+            "title": title,
+            "inserted_at": inserted_at,
+            "updated_at": updated_at,
             "longest_interaction_list": longest_interaction_list
         }
         new_data_list.append(new_session)

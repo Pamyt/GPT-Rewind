@@ -6,6 +6,7 @@ from rewind.utils.language_utils import (chinese_dominant, count_code_block_lang
                                         REFUSE_WORDS_LIST)
 from rewind.data_process.style_data import polite_count, emoji_count
 from rewind.utils.data_utils import iterate_fragments, iterate_fragments_with_model
+from rewind.data_process.time_data import chat_frequency_distribution, chat_themost
 
 def session_count_stats(data_list: Dict[str, any]) -> Dict[str, any]:
     """
@@ -140,6 +141,12 @@ def main():
 
     emoji_stats = emoji_count(data)
     print("Emoji Count Stats:", emoji_stats)
+
+    chat_freq_stats = chat_frequency_distribution(data)
+    print("Chat Frequency Distribution Stats:", chat_freq_stats)
+
+    chat_themost_stats = chat_themost(data)
+    print("Chat The Most Stats:", chat_themost_stats["max_interaction_count"])
 
 if __name__ == "__main__":
     main()
