@@ -4,6 +4,8 @@ from rewind.data_process.loading_data import load_json
 from rewind.data_process.update_data import update_data
 from rewind.utils.language_utils import (chinese_dominant, count_code_block_languages,
                                         REFUSE_WORDS_LIST)
+from rewind.data_process.style_data import polite_count, emoji_count
+from rewind.utils.data_utils import iterate_fragments, iterate_fragments_with_model
 
 def session_count_stats(data_list: Dict[str, any]) -> Dict[str, any]:
     """
@@ -39,24 +41,15 @@ def count_chars(data_list: List[Dict[str, any]]) -> Dict[str, int]:
     """
     Count the total number of characters in the 'fragments' of each record's message.
     """
-
     char_dict = {}
 
-    for session in data_list:
-        interaction = session.get("longest_interaction_list", [])
+    for content, interaction_type, model_type in iterate_fragments_with_model(data_list):
+        full_key = f"{model_type}_{interaction_type}"
 
-        for record in interaction:
-            fragments = record.get("message", {}).get("fragments", [])
-            model_type = record.get("message", {}).get("model", "unknown")
-            for fragment in fragments:
-                interaction_type = fragment.get("type", "")
-                full_key = f"{model_type}_{interaction_type}"
-
-                if full_key not in char_dict:
-                    char_dict[full_key] = 0
-                content = fragment.get("content", "")
-                char_count = len(content)
-                char_dict[full_key] += char_count
+        if full_key not in char_dict:
+            char_dict[full_key] = 0
+        char_count = len(content)
+        char_dict[full_key] += char_count
 
     return char_dict
 
@@ -68,28 +61,18 @@ def language_dominant_count(data_list: List[Dict[str, any]]) -> \
     chinese_dominant_dict = {}
     else_dominant_dict = {}
 
-    for session in data_list:
-        interaction = session.get("longest_interaction_list", [])
+    for content, interaction_type, model_type in iterate_fragments_with_model(data_list):
+        full_key = f"{model_type}_{interaction_type}"
 
-        for record in interaction:
-            fragments = record.get("message", {}).get("fragments", [])
-            model_type = record.get("message", {}).get("model", "unknown")
-            for fragment in fragments:
-                interaction_type = fragment.get("type", "")
-                full_key = f"{model_type}_{interaction_type}"
+        if full_key not in chinese_dominant_dict:
+            chinese_dominant_dict[full_key] = 0
+        if full_key not in else_dominant_dict:
+            else_dominant_dict[full_key] = 0
 
-                if full_key not in chinese_dominant_dict:
-                    chinese_dominant_dict[full_key] = 0
-                if full_key not in else_dominant_dict:
-                    else_dominant_dict[full_key] = 0
-                content = fragment.get("content", "")
-
-
-                if chinese_dominant(content):
-                    chinese_dominant_dict[full_key] += 1
-                else:
-
-                    else_dominant_dict[full_key] += 1
+        if chinese_dominant(content):
+            chinese_dominant_dict[full_key] += 1
+        else:
+            else_dominant_dict[full_key] += 1
 
     return chinese_dominant_dict, else_dominant_dict
 
@@ -100,22 +83,15 @@ def code_language_count(data_list: List[Dict[str, any]]) -> Dict[str, int]:
     """
     total_language_count = {}
 
-    for session in data_list:
-        interaction = session.get("longest_interaction_list", [])
+    for content, interaction_type in iterate_fragments(data_list):
+        if interaction_type == "REQUEST":
+            continue
+        language_count = count_code_block_languages(content)
 
-        for record in interaction:
-            fragments = record.get("message", {}).get("fragments", [])
-            for fragment in fragments:
-                content = fragment.get("content", "")
-                interaction_type = fragment.get("type", "")
-                if interaction_type == "REQUEST":
-                    continue
-                language_count = count_code_block_languages(content)
-
-                for lang, count in language_count.items():
-                    if lang not in total_language_count:
-                        total_language_count[lang] = 0
-                    total_language_count[lang] += count
+        for lang, count in language_count.items():
+            if lang not in total_language_count:
+                total_language_count[lang] = 0
+            total_language_count[lang] += count
 
     return total_language_count
 
@@ -125,18 +101,11 @@ def ai_refuse_count(data_list: List[Dict[str, any]]) -> int:
     """
     refuse_count = 0
 
-    for session in data_list:
-        interaction = session.get("longest_interaction_list", [])
-
-        for record in interaction:
-            fragments = record.get("message", {}).get("fragments", [])
-            for fragment in fragments:
-                content = fragment.get("content", "")
-                interaction_type = fragment.get("type", "")
-                if interaction_type == "RESPONSE" and \
-                    any(refuse_word in content for refuse_word in REFUSE_WORDS_LIST) and \
-                    len(content) < 50:
-                    refuse_count += 1
+    for content, interaction_type in iterate_fragments(data_list):
+        if interaction_type == "RESPONSE" and \
+            any(refuse_word in content for refuse_word in REFUSE_WORDS_LIST) and \
+            len(content) < 50:
+            refuse_count += 1
 
     return refuse_count
 
@@ -165,6 +134,12 @@ def main():
 
     chat_refuse_stats = ai_refuse_count(data)
     print("AI Refuse Count Stats:", chat_refuse_stats)
+
+    polite_stats = polite_count(data)
+    print("Polite Count Stats:", polite_stats)
+
+    emoji_stats = emoji_count(data)
+    print("Emoji Count Stats:", emoji_stats)
 
 if __name__ == "__main__":
     main()

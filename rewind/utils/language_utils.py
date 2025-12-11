@@ -37,3 +37,16 @@ def count_code_block_languages(text: str) -> dict:
 REFUSE_WORDS_LIST = [
     "对不起"
 ]
+
+PILITE_WORDS_LIST = [
+    "请",
+    "麻烦",
+    "您",
+    "感谢",
+    "谢"
+]
+
+IMPOLITE_WORDS_LIST = [
+    "你",
+    "傻逼"
+]
