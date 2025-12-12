@@ -271,16 +271,76 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
 
     // 第一页：每日趋势 (已修复：显示坐标轴，自适应高度)
+// 第一页：每日趋势 (升级版：横向滚动 + 自动定位最忙月份)
     function createDailyChart() {
         const chatDaysData = analysisData.chat_days || [];
-        // 取最近 14 天数据，避免X轴太挤，或者根据屏幕宽度取值
-        // 如果想看全年趋势，可以用 all 数据，但在手机上会很密
-        const displayData = chatDaysData.slice(-15); 
-        
-        const dates = displayData.map(item => item.date.substring(5)); // 只显示 "MM-DD"
-        const counts = displayData.map(item => parseInt(item.counts || 0));
+        if (chatDaysData.length === 0) return;
 
-        const ctx = document.getElementById('dailyChart').getContext('2d');
+        // 1. 数据准备：使用所有数据，不再切片
+        // 确保按日期排序
+        chatDaysData.sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        const dates = chatDaysData.map(item => item.date.substring(5)); // "MM-DD"
+        const counts = chatDaysData.map(item => parseInt(item.counts || 0));
+
+        // 2. 算法：寻找“最活跃月份”的起始位置 (用于默认滚动定位)
+        const monthMap = {};
+        let maxCount = -1;
+        let bestMonthPrefix = '';
+        
+        chatDaysData.forEach((item, index) => {
+            const m = item.date.substring(0, 7); // YYYY-MM
+            if (!monthMap[m]) monthMap[m] = { total: 0, startIndex: index };
+            monthMap[m].total += (item.counts || 0);
+            
+            if (monthMap[m].total > maxCount) {
+                maxCount = monthMap[m].total;
+                bestMonthPrefix = m;
+            }
+        });
+        
+        // 获取最活跃月份的第一天在数组中的索引
+        const scrollTargetIndex = bestMonthPrefix ? monthMap[bestMonthPrefix].startIndex : 0;
+
+        // 3. DOM 改造：创建滚动容器
+        const canvas = document.getElementById('dailyChart');
+        const chartBox = canvas.parentElement;
+        
+        // 检查是否已经创建了 wrapper，防止重复嵌套
+        let wrapper = document.getElementById('dailyChartWrapper');
+        if (!wrapper) {
+            wrapper = document.createElement('div');
+            wrapper.id = 'dailyChartWrapper';
+            wrapper.style.height = '100%';
+            wrapper.style.position = 'relative';
+            
+            // 将 canvas 移动到 wrapper 内部
+            chartBox.appendChild(wrapper);
+            wrapper.appendChild(canvas);
+            
+            // 设置父容器样式以支持横向滚动
+            chartBox.style.overflowX = 'auto';
+            chartBox.style.overflowY = 'hidden';
+            chartBox.style.webkitOverflowScrolling = 'touch'; // 移动端顺滑滚动
+            
+            // 隐藏滚动条 (Firefox)
+            chartBox.style.scrollbarWidth = 'none'; 
+        }
+
+        // 4. 动态计算图表宽度
+        // 逻辑：屏幕(容器)宽度对应显示 30 天的数据密度
+        const visibleDays = 30; 
+        const containerWidth = chartBox.clientWidth || 350; // 获取当前屏幕宽度
+        const pixelPerDay = containerWidth / visibleDays;   // 每一天占多少像素
+        
+        // 总宽度 = 总天数 * 单天宽度 (如果总天数少于30天，则撑满屏幕即可)
+        const totalWidth = Math.max(containerWidth, dates.length * pixelPerDay);
+        
+        // 强制设置 wrapper 宽度，撑开滚动区域
+        wrapper.style.width = `${totalWidth}px`;
+
+        // 5. 绘制图表
+        const ctx = canvas.getContext('2d');
         if (charts.daily) charts.daily.destroy();
 
         charts.daily = new Chart(ctx, {
@@ -288,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data: {
                 labels: dates,
                 datasets: [{
-                    label: '字符数',
+                    label: '对话数',
                     data: counts,
                     borderColor: '#667eea',
                     backgroundColor: 'rgba(102, 126, 234, 0.1)',
@@ -302,35 +362,43 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false, // 【关键】允许高度被 CSS 压缩
+                maintainAspectRatio: false, // 必须为 false 才能适应动态宽度
                 plugins: { 
                     legend: { display: false },
                     tooltip: { mode: 'index', intersect: false }
                 },
                 scales: {
                     x: { 
-                        display: true, // 【用户要求】显示 X 轴
+                        display: true,
                         grid: { display: false },
                         ticks: { 
                             font: { size: 10 }, 
-                            maxRotation: 0, // 防止文字倾斜占高度
-                            autoSkip: true,
-                            maxTicksLimit: 5 
+                            maxRotation: 0,
+                            autoSkip: true, // 让 Chart.js 自动决定标签密度
+                            maxTicksLimit: dates.length // 取消之前的限制，因为现在宽度够大
                         }
                     },
                     y: { 
-                        display: true, // 【用户要求】显示 Y 轴
+                        display: true, 
                         border: { display: false },
                         grid: { color: '#f0f0f0' },
                         ticks: { 
                             font: { size: 9 },
-                            maxTicksLimit: 4 // 限制刻度数量，节省高度
+                            maxTicksLimit: 4
                         }
                     }
                 },
                 layout: { padding: 0 }
             }
         });
+
+        // 6. 自动滚动到最活跃的月份
+        // 使用 setTimeout 确保 DOM 渲染完成后执行滚动
+        setTimeout(() => {
+            const scrollPos = scrollTargetIndex * pixelPerDay;
+            // 平滑滚动可能在初始化时有点晕，直接跳转更利索
+            chartBox.scrollLeft = scrollPos; 
+        }, 100);
     }
 
     // 第二页：模型分布 (紧凑版)
@@ -427,15 +495,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 第三页：小时分布 (紧凑版)
     // 第三页：小时分布 (修复：颜色改成深色，防止在白底上看不见)
+// 第三页：小时分布 (已开启纵轴显示)
     function createHourlyChart() {
         const hourlyData = analysisData.per_hour_distribution || {};
-        // 确保小时序正确排序 (0, 1, 2... 23)
         const hours = Object.keys(hourlyData).sort((a, b) => parseInt(a) - parseInt(b));
         const values = hours.map(h => hourlyData[h]);
 
-        // 补全 0-23 小时的数据（如果某些小时没有数据，图表会断裂，补0更美观）
-        // 如果想只显示有数据的时间段，可以保留上面的逻辑。
-        // 为了视觉美观，建议补全：
+        // 补全 0-23 小时
         const fullHours = [];
         const fullValues = [];
         for (let i = 0; i < 24; i++) {
@@ -447,10 +513,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = document.getElementById('hourlyChart').getContext('2d');
         if (charts.hourly) charts.hourly.destroy();
 
-        // 创建紫色渐变，提升视觉效果
+        // 紫色渐变
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, '#667eea'); // 顶部紫色
-        gradient.addColorStop(1, '#764ba2'); // 底部深紫
+        gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(1, '#764ba2');
 
         charts.hourly = new Chart(ctx, {
             type: 'bar',
@@ -459,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 datasets: [{
                     label: '对话次数',
                     data: fullValues,
-                    backgroundColor: gradient, // 【修复核心】改成显眼的渐变色
+                    backgroundColor: gradient,
                     borderRadius: 4,
                     barPercentage: 0.6,
                     hoverBackgroundColor: '#764ba2'
@@ -467,7 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false, // 允许压扁
+                maintainAspectRatio: false, 
                 plugins: { 
                     legend: { display: false },
                     tooltip: {
@@ -482,16 +548,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     x: { 
                         grid: { display: false }, 
                         ticks: { 
-                            color: '#888', // 刻度颜色改成灰色
+                            color: '#888',
                             font: { size: 9 },
                             maxRotation: 0,
                             autoSkip: true,
-                            maxTicksLimit: 8 // 每3个小时显示一个刻度，避免拥挤
+                            maxTicksLimit: 8
                         } 
                     },
+                    // 【修改部分】开启 Y 轴
                     y: { 
-                        display: false, // Y轴隐藏（美观考量），如果你想看具体数值可以改为 true
-                        beginAtZero: true
+                        display: true, // 1. 改为 true 显示
+                        beginAtZero: true,
+                        border: { display: false }, // 2. 隐藏左侧竖线，更美观
+                        grid: { 
+                            color: '#f0f0f0', // 3. 设置淡淡的网格线
+                            drawBorder: false 
+                        },
+                        ticks: { 
+                            color: '#888', // 文字颜色
+                            font: { size: 9 }, // 字号小一点
+                            maxTicksLimit: 5 // 4. 限制刻度数量，防止太密
+                        }
                     } 
                 },
                 layout: { padding: 0 },
