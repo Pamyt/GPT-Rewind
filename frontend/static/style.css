@@ -163,3 +163,50 @@ body.export-mode {
 body.export-mode .card-container {
     overflow: hidden !important;
 }
+/* =========================================
+   字数统计双栏样式
+   ========================================= */
+.chars-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 12px;
+    padding: 15px 10px;
+    margin-bottom: 10px;
+}
+
+.char-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.char-label {
+    font-size: 0.85em;
+    color: #888;
+    margin-bottom: 4px;
+}
+
+.char-num {
+    font-size: 1.4em;
+    font-weight: bold;
+    font-family: 'Arial', sans-serif; /* 确保数字字体清晰 */
+}
+
+/* 针对用户的样式 (深灰色) */
+.char-item.user .char-num {
+    color: #555;
+}
+
+/* 针对 AI 的样式 (主题色/紫色) */
+.char-item.ai .char-num {
+    color: #667eea;
+}
+
+/* 中间的分隔线 */
+.char-divider {
+    width: 1px;
+    height: 30px;
+    background-color: #ddd;
+}

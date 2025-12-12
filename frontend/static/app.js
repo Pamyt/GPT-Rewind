@@ -513,10 +513,77 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 第一页内容
+  // ==========================================
+    // 修改函数 1: updateOverviewCards
+    // ==========================================
     function updateOverviewCards() {
+        // 1. 更新会话数
         document.getElementById('sessionCount').textContent = analysisData.session_count?.session_count || 0;
-        const totalChars = (analysisData.total_characters || []).reduce((s, it) => s + parseInt(it.counts || 0), 0);
-        document.getElementById('totalChars').textContent = formatNumber(totalChars);
+
+        // 2. 更新字数 (区分用户与 AI)
+        const totalCharsData = analysisData.total_characters || [];
+        
+        let userTotal = 0;
+        let aiTotal = 0;
+
+        totalCharsData.forEach(item => {
+            const count = parseInt(item.counts || 0);
+            const type = item.model_type || '';
+
+            // 逻辑：只要是以 _REQUEST 结尾的，都算作用户输入
+            if (type.endsWith('_REQUEST')) {
+                userTotal += count;
+            } else {
+                // 包括 _RESPONSE 和 _THINK，都算作 AI 生成
+                aiTotal += count;
+            }
+        });
+
+        // 更新 HTML 元素
+        const userEl = document.getElementById('userChars');
+        const aiEl = document.getElementById('aiChars');
+
+        // 只有当元素存在时才更新 (防止报错)
+        if (userEl) userEl.textContent = formatNumber(userTotal);
+        if (aiEl) aiEl.textContent = formatNumber(aiTotal);
+    }
+
+    // ==========================================
+    // 修改函数 2: generateCharactersCopy
+    // ==========================================
+    function generateCharactersCopy() {
+        // 重新计算总数用于文案对比
+        const totalCharsData = analysisData.total_characters || [];
+        let grandTotal = 0;
+        let aiTotal = 0;
+        let userTotal = 0;
+
+        totalCharsData.forEach(item => {
+            const count = parseInt(item.counts || 0);
+            grandTotal += count;
+            if (item.model_type.endsWith('_REQUEST')) {
+                userTotal += count;
+            } else {
+                aiTotal += count;
+            }
+        });
+
+        const box = document.getElementById('charactersCopy');
+        
+        // 计算倍率 (AI 写了多少字 / 用户写了多少字)
+        const ratio = userTotal > 0 ? (aiTotal / userTotal).toFixed(1) : 0;
+
+        // 依然保留之前的哈利波特/电影对比，因为总产出依然很壮观
+        const hpWords = 1100000; 
+        const novels = (grandTotal / hpWords).toFixed(2);
+        
+        const templates = [
+            `这一年，你每敲下 1 个字，AI 就会回馈给你 ${ratio} 个字的灵感。`,
+            `你们一共创造了 ${formatNumber(grandTotal)} 字符，相当于合写了 ${novels} 本《哈利波特》。`,
+            `你的 ${formatNumber(userTotal)} 字提问，撬动了 AI ${formatNumber(aiTotal)} 字的庞大思考。`
+        ];
+        
+        box.textContent = pickOne(templates);
     }
 
     function generateMonthCopy() {
@@ -550,20 +617,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('monthCopy').innerHTML = `<span style="color:#667eea;font-size:1.2em">${topMonth}月</span> <br> ${text}`;
     }
 
-    function generateCharactersCopy() {
-        const total = (analysisData.total_characters || []).reduce((s, it) => s + parseInt(it.counts || 0), 0);
-        const hpWords = 1100000; 
-        const zootopiaLines = 80000;
-        const novels = (total / hpWords).toFixed(2);
-        const movies = (total / zootopiaLines).toFixed(1);
-        
-        const templates = [
-            `这一年你敲下了 ${formatNumber(total)} 字符，工作量相当于 ${novels} 本《哈利波特》。`,
-            `如果把这些对话拍成电影，台词量足足是《疯狂动物城2》的 ${movies} 倍。`,
-            `你的思维是一座矿藏，${formatNumber(total)} 个字符就是你挖掘出的宝石。`
-        ];
-        document.getElementById('charactersCopy').textContent = pickOne(templates);
-    }
 
     function generateSessionsCopy() {
         const count = analysisData.session_count?.session_count || 0;

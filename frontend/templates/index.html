@@ -47,12 +47,21 @@
                 <h3>最忙碌的月份</h3>
                 <p id="monthCopy" class="highlight-text"></p>
             </div>
-
-            <div class="text-group">
-                <h3>总产出</h3>
-                <p>共 <span id="totalChars">0</span> 字符</p>
-                <p id="charactersCopy" class="copy-text"></p>
-            </div>
+<div class="text-group">
+    <h3>字数统计</h3>
+    <div class="chars-container">
+        <div class="char-item user">
+            <span class="char-label">你敲的字</span>
+            <span class="char-num" id="userChars">0</span>
+        </div>
+        <div class="char-divider"></div>
+        <div class="char-item ai">
+            <span class="char-label">AI 回复</span>
+            <span class="char-num" id="aiChars">0</span>
+        </div>
+    </div>
+    <p id="charactersCopy" class="copy-text"></p>
+</div>
         </div>
     </section>
 
