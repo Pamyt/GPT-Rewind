@@ -1,6 +1,6 @@
 """analyze time data"""
 from typing import List, Dict, Any
-from datetime import time
+from datetime import time, timedelta
 from dateutil import parser
 from rewind.utils.time_utils import delta_to_dhms
 
@@ -176,7 +176,9 @@ def count_per_hour_distribution(data_list: List[Dict[str, Any]]) -> Dict[Any, An
 
             # Move to the next hour
             current_time = current_time.replace(minute=0, second=0, microsecond=0)
-            current_time = current_time.replace(hour=current_hour + 1)
+
+            # Add one hour to properly handle day transitions
+            current_time = current_time + timedelta(hours=1)
 
             # If we've moved past the end time, break
             if current_time > end_time:
