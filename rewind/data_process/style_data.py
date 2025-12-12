@@ -1,7 +1,7 @@
 """Style analysis for user side and ai side"""
 from typing import List, Dict
 import emoji
-from rewind.utils.language_utils import PILITE_WORDS_LIST, IMPOLITE_WORDS_LIST
+from rewind.utils.language_utils import POLITE_WORDS_LIST, IMPOLITE_WORDS_LIST
 from rewind.utils.data_utils import iterate_fragments
 
 
@@ -21,7 +21,7 @@ def polite_count(data_list: List[Dict[str, any]]) -> int:
 
 def _count_polite_words(content: str, polite_stats: Dict[str, int]) -> None:
     """Count polite words in content and update stats."""
-    for polite_word in PILITE_WORDS_LIST:
+    for polite_word in POLITE_WORDS_LIST:
         if polite_word in content:
             polite_stats[polite_word] = polite_stats.get(polite_word, 0) + 1
 

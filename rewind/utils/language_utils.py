@@ -38,7 +38,7 @@ REFUSE_WORDS_LIST = [
     "对不起"
 ]
 
-PILITE_WORDS_LIST = [
+POLITE_WORDS_LIST = [
     "请",
     "麻烦",
     "您",
