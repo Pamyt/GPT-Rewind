@@ -1,0 +1,165 @@
+:root {
+    --bg-morning: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+    --bg-day: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+    --bg-dusk: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    --bg-night: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+    --card-bg: rgba(255, 255, 255, 0.92);
+    --text-main: #333;
+    --text-sub: #666;
+    --accent: #667eea;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* 禁止滚动，模拟整页切换 */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--text-main);
+    transition: background 1s ease;
+}
+
+/* 动态背景主题 */
+body.theme-morning { background: var(--bg-morning); }
+body.theme-day { background: var(--bg-day); }
+body.theme-dusk { background: var(--bg-dusk); }
+body.theme-night { background: var(--bg-night); }
+
+/* 页面通用布局 */
+.page {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 卡片容器：模仿手机屏幕内容的白色卡片 */
+.card-container {
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 400px; /* 限制最大宽度，模仿手机竖屏 */
+    height: 90%;
+    max-height: 800px;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* 内容过多可内部滚动 */
+    box-sizing: border-box;
+}
+
+/* 文本样式 */
+h1 { font-size: 2em; margin-bottom: 10px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+h2 { font-size: 1.4em; color: var(--accent); margin: 0 0 15px 0; border-left: 4px solid var(--accent); padding-left: 10px; }
+h3 { font-size: 1.1em; margin: 15px 0 5px 0; }
+.subtitle { color: rgba(255,255,255,0.9); margin-bottom: 30px; }
+
+.big-stat { font-size: 3em; font-weight: 800; color: var(--accent); line-height: 1; margin: 10px 0; }
+.big-stat small { font-size: 0.3em; color: var(--text-sub); font-weight: normal; margin-left: 5px; }
+
+.copy-text { font-size: 0.9em; color: var(--text-sub); line-height: 1.6; margin-top: 5px; }
+.highlight-text { font-size: 1em; font-weight: bold; color: #444; background: rgba(102, 126, 234, 0.1); padding: 10px; border-radius: 8px; }
+.center { text-align: center; }
+
+/* 按钮样式 */
+.btn-main {
+    background: #fff; color: var(--accent); border: none; padding: 12px 30px;
+    border-radius: 30px; font-size: 1.1em; font-weight: bold; cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.2s;
+}
+.btn-main:active { transform: scale(0.95); }
+.btn-sub {
+    background: var(--accent); color: #fff; border: none; padding: 12px 20px;
+    border-radius: 8px; width: 100%; margin-top: 20px; cursor: pointer;
+}
+.btn-link { background: none; border: none; color: #999; margin-top: 10px; cursor: pointer; text-decoration: underline; }
+
+/* 图表容器 */
+.chart-box { margin:5px 0; width: 100%;position:relative;flex:1;min-height:0;}
+.chart-container-row { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+.chart-half { flex: 1; }
+.text-half { flex: 1; font-size: 0.85em; }
+
+/* Emoji 云 */
+.emoji-cloud { display: grid; grid-template-columns:repeat(3,1fr); gap: 5px; margin: 5px 0; }
+.emoji-item { background: #f0f2f5; padding: 4px 8px; border-radius: 12px; font-size: 0.8em; display: flex; align-items: center; }
+.emoji-char { font-size: 1.2em; margin-right: 5px; }
+
+/* 导航箭头 (右侧改为上下翻页逻辑更符合直觉，或者保留左右) */
+/* 这里按你要求的向右箭头，但我建议上下切换更符合年度报告习惯。下面按你的“向右”要求做 */
+.nav-arrows { position: fixed; right: 20px; top: 50%; transform: translateY(-50%); z-index: 100; display: flex; flex-direction: column; gap: 20px; }
+.arrow {
+    width: 40px; height: 40px; background: rgba(255,255,255,0.3); border-radius: 50%;
+    display: flex; justify-content: center; align-items: center; cursor: pointer;
+    backdrop-filter: blur(5px); transition: background 0.3s;
+}
+.arrow::after { content: ''; border: solid #fff; border-width: 0 3px 3px 0; padding: 5px; }
+/* 下一页箭头 */
+.arrow.down::after { transform: rotate(45deg); margin-left: -2px; } /* 向右箭头视觉 */
+/* 上一页箭头 */
+.arrow.up::after { transform: rotate(-135deg); margin-left: 5px; } /* 向左箭头视觉 */
+
+.arrow:hover { background: rgba(255,255,255,0.6); }
+
+/* 浮动动画 */
+.arrow.down { animation: floatRight 1.5s infinite ease-in-out; }
+@keyframes floatRight {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(5px); }
+}
+.arrow.up { animation: floatLeft 1.5s infinite ease-in-out; }
+@keyframes floatLeft {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-5px); }
+}
+
+/* Helper */
+.content-center { text-align: center; color: white; }
+.file-name { margin-top: 10px; color: rgba(255,255,255,0.8); font-size: 0.9em; }
+.loader { border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #fff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+/* =========================================
+   导出模式专用样式 (修复 html2canvas 渲染问题)
+   ========================================= */
+
+/* 当 body 有 export-mode 类时，强制修改卡片样式 */
+body.export-mode .card-container {
+    /* 核心修复：将背景临时改为不透明的纯白。
+       这解决了半透明背景在截图时可能跑到文字上方，或导致颜色混合过深的问题。 */
+    background: #ffffff !important;
+    
+    /* 可选：导出时去掉阴影，让画面更干净、边缘更锐利 */
+    box-shadow: none !important;
+    
+    /* 强制提升层级，确保卡片内容一定在背景之上 */
+    position: relative;
+    z-index: 99999 !important;
+}
+
+/* 确保当前激活的页面容器也在高层级 */
+body.export-mode .page.active {
+    z-index: 99990 !important;
+}
+
+/* 导出时隐藏所有滚动条，防止截图出现滚动条痕迹 */
+body.export-mode {
+    overflow: hidden !important;
+}
+body.export-mode .card-container {
+    overflow: hidden !important;
+}

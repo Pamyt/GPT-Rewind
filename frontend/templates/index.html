@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我的 AI 年度总结</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="theme-day"> <section id="pageUpload" class="page active">
+        <div class="content-center">
+            <h1>AI 年度回忆</h1>
+            <p class="subtitle">解压你的思维档案</p>
+            <div class="upload-box">
+                <input type="file" id="fileInput" accept=".json" hidden>
+                <button id="uploadBtn" class="btn-main">上传 JSON 记录</button>
+                <div id="fileName" class="file-name"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="loadingSection" class="page" style="display: none;">
+        <div class="content-center">
+            <div class="loader"></div>
+            <p>正在回溯时光...</p>
+        </div>
+    </section>
+
+    <section id="page1" class="page" style="display: none;">
+        <div class="card-container">
+            <div class="header-text">
+                <h2>年度概览</h2>
+                <div class="big-stat">
+                    <span id="sessionCount">0</span>
+                    <small>次对话</small>
+                </div>
+                <p id="sessionsCopy" class="copy-text"></p>
+            </div>
+
+            <div class="chart-box">
+                <canvas id="dailyChart"></canvas>
+            </div>
+            
+            <div class="text-group">
+                <h3>最忙碌的月份</h3>
+                <p id="monthCopy" class="highlight-text"></p>
+            </div>
+
+            <div class="text-group">
+                <h3>总产出</h3>
+                <p>共 <span id="totalChars">0</span> 字符</p>
+                <p id="charactersCopy" class="copy-text"></p>
+            </div>
+        </div>
+    </section>
+
+    <section id="page2" class="page" style="display: none;">
+        <div class="card-container">
+            <h2>你的 AI 伙伴</h2>
+            
+            <div class="chart-container-row">
+                <div class="chart-half">
+                    <canvas id="modelsChart"></canvas>
+                </div>
+                <div class="text-half" id="modelsCopy"></div>
+            </div>
+
+            <hr class="divider">
+
+            <h2>使用的语言</h2>
+            <div class="chart-box wide">
+                <div id="languageChart" style="width: 100%; height: 250px;"></div>
+            </div>
+            <div id="languageCopy" class="copy-text list-copy"></div>
+        </div>
+    </section>
+
+    <section id="page3" class="page" style="display: none;">
+        <div class="card-container">
+            <h2>你的时钟</h2>
+            
+            <div class="chart-box">
+                <canvas id="hourlyChart"></canvas>
+            </div>
+            <p id="hourlyCopy" class="highlight-text center"></p>
+
+            <div class="time-records" id="timeStats">
+                </div>
+            <div id="timeCopy" class="copy-text small-margin"></div>
+        </div>
+    </section>
+
+    <section id="page4" class="page" style="display: none;">
+        <div class="card-container">
+            <h2>相处模式</h2>
+            
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <span class="label">礼貌用语</span>
+                    <span class="value" id="politeness">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">被拒次数</span>
+                    <span class="value" id="refuseCount">0</span>
+                </div>
+            </div>
+            
+            <p id="politenessSummary" class="highlight-text"></p>
+            <p id="refuseCopy" class="copy-text"></p>
+
+            <div class="emoji-section">
+                <h3>Emoji 足迹</h3>
+                <div id="emojiList" class="emoji-cloud"></div>
+                <p id="emojiCopy" class="copy-text"></p>
+            </div>
+
+            <div class="action-area">
+                <button id="exportBtn" class="btn-sub">保存年度记忆 (图片)</button>
+                <button id="restartBtn" class="btn-link">再测一次</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="errorSection" class="page error-page" style="display: none;">
+        <div class="content-center">
+            <p>出错了</p>
+            <p id="errorMessage"></p>
+            <button id="retryBtn">重试</button>
+        </div>
+    </section>
+
+    <div class="nav-arrows">
+        <div id="prevArrow" class="arrow up" style="display: none;"></div>
+        <div id="nextArrow" class="arrow down" style="display: none;"></div>
+    </div>
+
+   <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

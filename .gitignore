@@ -2,7 +2,7 @@
 *.pyc
 
 models/
-
+venv/
 data/*.json
 
 !data/example.json

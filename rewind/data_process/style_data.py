@@ -5,9 +5,10 @@ from rewind.utils.language_utils import POLITE_WORDS_LIST, IMPOLITE_WORDS_LIST
 from rewind.utils.data_utils import iterate_fragments
 
 
-def polite_count(data_list: List[Dict[str, any]]) -> int:
+def polite_count(data_list: List[Dict[str, any]]) -> List[Dict[str, any]]:
     """
-    Count the number of AI refusal messages in the 'fragments' of each record's message.
+    Count the number of polite and impolite words in the 'fragments' of each record's message.
+    Returns a list of dictionaries with format: [{"word":"您","counts":"10"}, ...]
     """
     polite_stats = {}
 
@@ -16,7 +17,9 @@ def polite_count(data_list: List[Dict[str, any]]) -> int:
             _count_polite_words(content, polite_stats)
             _count_impolite_words(content, polite_stats)
 
-    return polite_stats
+    # Convert dictionary to list of dictionaries format
+    result = [{"word": word, "counts": str(count)} for word, count in polite_stats.items()]
+    return result
 
 
 def _count_polite_words(content: str, polite_stats: Dict[str, int]) -> None:
@@ -42,8 +45,8 @@ def emoji_count(data_list: List[Dict[str, any]]) -> Dict[any, int]:
     for content, interaction_type in iterate_fragments(data_list):
         if interaction_type != "REQUEST":
             _count_emojis(content, emoji_stats)
-
-    return emoji_stats
+    result=[{"emoji": emo, "counts": str(count)} for emo, count in emoji_stats.items()]
+    return result
 
 
 def _count_emojis(content: str, emoji_stats: Dict[str, int]) -> None:

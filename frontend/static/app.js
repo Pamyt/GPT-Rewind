@@ -1,0 +1,853 @@
+document.addEventListener('DOMContentLoaded', () => {
+    // ==========================================
+    // 1. 全局变量与 DOM 元素获取
+    // ==========================================
+    let uploadedFilePath = null;
+    let analysisData = null;
+    let charts = {
+        models: null,
+        daily: null,
+        hourly: null,
+        language: null // ECharts instance
+    };
+    let currentPage = 0;
+
+    // 页面元素
+    const pages = {
+        0: document.getElementById('pageUpload'),
+        1: document.getElementById('page1'),
+        2: document.getElementById('page2'),
+        3: document.getElementById('page3'),
+        4: document.getElementById('page4')
+    };
+    
+    const loadingSection = document.getElementById('loadingSection');
+    const errorSection = document.getElementById('errorSection');
+    const prevArrow = document.getElementById('prevArrow');
+    const nextArrow = document.getElementById('nextArrow');
+
+    // 交互元素
+    const fileInput = document.getElementById('fileInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const fileNameDisplay = document.getElementById('fileName');
+    const retryBtn = document.getElementById('retryBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const restartBtn = document.getElementById('restartBtn');
+
+    // ==========================================
+    // 2. 事件监听
+    // ==========================================
+    
+    // 上传相关
+    uploadBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', handleFileSelect);
+    
+    // 导航相关
+    if (prevArrow) prevArrow.addEventListener('click', () => changePage(-1));
+    if (nextArrow) nextArrow.addEventListener('click', () => changePage(1));
+    
+    // 功能相关
+    if (retryBtn) retryBtn.addEventListener('click', resetUI);
+    if (restartBtn) restartBtn.addEventListener('click', resetUI);
+    if (exportBtn) exportBtn.addEventListener('click', exportPagesAsImages);
+
+    // 窗口调整时重绘 ECharts
+    window.addEventListener('resize', () => {
+        if (charts.language) charts.language.resize();
+    });
+
+    // ==========================================
+    // 3. 文件处理与 API 通信
+    // ==========================================
+
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!file.name.endsWith('.json')) {
+            showError('请选择 .json 格式的文件');
+            return;
+        }
+
+        fileNameDisplay.textContent = `✓ ${file.name}`;
+        uploadFile(file);
+    }
+
+    function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        showLoading(true);
+
+        fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) throw new Error(data.error);
+            uploadedFilePath = data.filepath;
+            analyzeData();
+        })
+        .catch(error => {
+            showError('上传失败: ' + error.message);
+        });
+    }
+
+    function analyzeData() {
+        fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filepath: uploadedFilePath })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) throw new Error(data.error);
+            analysisData = data;
+            // 确保数据加载完后有短暂延迟，体验更流畅
+            setTimeout(() => {
+                displayResults();
+            }, 500);
+        })
+        .catch(error => {
+            showError('分析失败: ' + error.message);
+        });
+    }
+
+    // ==========================================
+    // 4. 页面渲染与逻辑核心
+    // ==========================================
+
+    function displayResults() {
+        showLoading(false);
+        errorSection.style.display = 'none';
+        
+        // 设置背景主题
+        setBackgroundTheme();
+
+        // --- 第一页填充 ---
+        updateOverviewCards();
+        createDailyChart();
+        generateMonthCopy();
+        generateCharactersCopy();
+        generateSessionsCopy();
+
+        // --- 第二页填充 ---
+        createModelsChart();
+        createLanguageChart();
+        generateModelsCopy();
+        generateLanguageCopy();
+
+        // --- 第三页填充 ---
+        createHourlyChart();
+        createTimeStats();
+        generateHourlyCopy();
+        generateTimeCopy();
+
+        // --- 第四页填充 ---
+        generatePolitenessSummary();
+        generateRefuseCopy();
+        createEmojiList();
+        generateEmojiCopy();
+
+        // 进入第一页
+        showPage(1);
+    }
+
+    // 设置背景主题
+    function setBackgroundTheme() {
+        const hourly = analysisData?.per_hour_distribution || {};
+        console.log("analysis data:", analysisData);
+        // 找出最活跃的小时，默认为 12 点
+        let peakHour = '12';
+        if (Object.keys(hourly).length > 0) {
+            peakHour = Object.keys(hourly).reduce((a, b) => hourly[b] > (hourly[a] || 0) ? b : a);
+        }
+        
+        const h = parseInt(peakHour, 10);
+        const body = document.body;
+        
+        // 移除旧类
+        body.classList.remove('theme-morning', 'theme-dusk', 'theme-night', 'theme-day');
+        
+        if (h >= 5 && h <= 11) {
+            body.classList.add('theme-morning');
+        } else if (h >= 16 && h <= 19) {
+            body.classList.add('theme-dusk');
+        } else if (h >= 20 || h <= 4) {
+            body.classList.add('theme-night');
+        } else {
+            body.classList.add('theme-day');
+        }
+    }
+
+    // ==========================================
+    // 5. 导航逻辑
+    // ==========================================
+
+    function changePage(delta) {
+        const target = currentPage + delta;
+        if (target >= 1 && target <= 4) {
+            showPage(target);
+        }
+    }
+
+    function showPage(n) {
+        // 隐藏所有页面
+        Object.values(pages).forEach(p => {
+            if (p) {
+                p.style.display = 'none';
+                p.classList.remove('active');
+            }
+        });
+
+        // 显示目标页面
+        const targetPage = pages[n];
+        if (targetPage) {
+            targetPage.style.display = 'flex'; // 使用 flex 布局居中
+            // 强制重绘触发动画
+            void targetPage.offsetWidth; 
+            targetPage.classList.add('active');
+        }
+
+        currentPage = n;
+
+        // 控制箭头显示
+        if (prevArrow) prevArrow.style.display = (n > 1) ? 'flex' : 'none';
+        if (nextArrow) nextArrow.style.display = (n > 0 && n < 4) ? 'flex' : 'none';
+
+        // 特殊处理：如果是第二页，ECharts 需要 resize
+        if (n === 2 && charts.language) {
+            setTimeout(() => {
+                charts.language.resize();
+            }, 100);
+        }
+    }
+
+    function showLoading(show) {
+        // 隐藏上传页
+        pages[0].style.display = 'none';
+        if (show) {
+            loadingSection.style.display = 'flex';
+            errorSection.style.display = 'none';
+        } else {
+            loadingSection.style.display = 'none';
+        }
+    }
+
+    function showError(msg) {
+        showLoading(false);
+        Object.values(pages).forEach(p => p.style.display = 'none');
+        errorSection.style.display = 'flex';
+        document.getElementById('errorMessage').textContent = msg;
+    }
+
+    function resetUI() {
+        uploadedFilePath = null;
+        analysisData = null;
+        fileInput.value = '';
+        fileNameDisplay.textContent = '';
+        
+        // 销毁图表
+        if (charts.models) charts.models.destroy();
+        if (charts.daily) charts.daily.destroy();
+        if (charts.hourly) charts.hourly.destroy();
+        if (charts.language) {
+            charts.language.dispose();
+            charts.language = null;
+        }
+
+        errorSection.style.display = 'none';
+        showPage(0); // 回到上传页
+    }
+
+    // ==========================================
+    // 6. 图表绘制函数
+    // ==========================================
+
+    // 第一页：每日趋势
+// ==========================================
+    // 6. 图表绘制函数 (紧凑布局优化版)
+    // ==========================================
+
+    // 第一页：每日趋势 (已修复：显示坐标轴，自适应高度)
+    function createDailyChart() {
+        const chatDaysData = analysisData.chat_days || [];
+        // 取最近 14 天数据，避免X轴太挤，或者根据屏幕宽度取值
+        // 如果想看全年趋势，可以用 all 数据，但在手机上会很密
+        const displayData = chatDaysData.slice(-15); 
+        
+        const dates = displayData.map(item => item.date.substring(5)); // 只显示 "MM-DD"
+        const counts = displayData.map(item => parseInt(item.counts || 0));
+
+        const ctx = document.getElementById('dailyChart').getContext('2d');
+        if (charts.daily) charts.daily.destroy();
+
+        charts.daily = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: '字符数',
+                    data: counts,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#667eea'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // 【关键】允许高度被 CSS 压缩
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    x: { 
+                        display: true, // 【用户要求】显示 X 轴
+                        grid: { display: false },
+                        ticks: { 
+                            font: { size: 10 }, 
+                            maxRotation: 0, // 防止文字倾斜占高度
+                            autoSkip: true,
+                            maxTicksLimit: 5 
+                        }
+                    },
+                    y: { 
+                        display: true, // 【用户要求】显示 Y 轴
+                        border: { display: false },
+                        grid: { color: '#f0f0f0' },
+                        ticks: { 
+                            font: { size: 9 },
+                            maxTicksLimit: 4 // 限制刻度数量，节省高度
+                        }
+                    }
+                },
+                layout: { padding: 0 }
+            }
+        });
+    }
+
+    // 第二页：模型分布 (紧凑版)
+    function createModelsChart() {
+        const modelsData = analysisData.most_used_models || [];
+        const labels = modelsData.map(item => item.model.replace('deepseek-', '')); // 简化名字
+        const data = modelsData.map(item => parseInt(item.usage || 0));
+
+        const ctx = document.getElementById('modelsChart').getContext('2d');
+        if (charts.models) charts.models.destroy();
+
+        charts.models = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b'],
+                    borderWidth: 1,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // 【关键】
+                cutout: '60%', // 环稍微细一点
+                plugins: {
+                    legend: { 
+                        position: 'right', // 放在右侧节省垂直空间
+                        labels: { 
+                            boxWidth: 8, 
+                            font: { size: 10 },
+                            padding: 10
+                        } 
+                    }
+                },
+                layout: { padding: 0 }
+            }
+        });
+    }
+
+    // 第二页：语言分布 (ECharts 紧凑版)
+    function createLanguageChart() {
+        const languageData = analysisData.most_used_language || [];
+        const chartDiv = document.getElementById('languageChart');
+        
+        // 取 Top 5 语言，防止条目太多撑不开
+        const sortedLangs = languageData.sort((a,b) => b.counts - a.counts).slice(0, 5);
+        
+        const languages = {};
+        sortedLangs.forEach(item => {
+            languages[item.language] = parseInt(item.counts || 0);
+        });
+
+        const option = {
+            // 【关键】极小的边距，利用每一寸空间
+            grid: { top: 5, right: 10, bottom: 5, left: 5, containLabel: true },
+            xAxis: { type: 'value', show: false },
+            yAxis: { 
+                type: 'category', 
+                data: Object.keys(languages),
+                axisLine: { show: false },
+                axisTick: { show: false },
+                axisLabel: { 
+                    fontSize: 10,
+                    width: 70, // 限制文字宽度
+                    overflow: 'truncate' 
+                }
+            },
+            series: [{
+                data: Object.values(languages),
+                type: 'bar',
+                barWidth: 12, // 细条
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                        { offset: 0, color: '#667eea' },
+                        { offset: 1, color: '#764ba2' }
+                    ]),
+                    borderRadius: [0, 6, 6, 0]
+                },
+                label: {
+                    show: true,
+                    position: 'right',
+                    fontSize: 9,
+                    formatter: '{c}'
+                }
+            }]
+        };
+
+        if (charts.language) charts.language.dispose();
+        charts.language = echarts.init(chartDiv);
+        charts.language.setOption(option);
+    }
+
+    // 第三页：小时分布 (紧凑版)
+    // 第三页：小时分布 (修复：颜色改成深色，防止在白底上看不见)
+    function createHourlyChart() {
+        const hourlyData = analysisData.per_hour_distribution || {};
+        // 确保小时序正确排序 (0, 1, 2... 23)
+        const hours = Object.keys(hourlyData).sort((a, b) => parseInt(a) - parseInt(b));
+        const values = hours.map(h => hourlyData[h]);
+
+        // 补全 0-23 小时的数据（如果某些小时没有数据，图表会断裂，补0更美观）
+        // 如果想只显示有数据的时间段，可以保留上面的逻辑。
+        // 为了视觉美观，建议补全：
+        const fullHours = [];
+        const fullValues = [];
+        for (let i = 0; i < 24; i++) {
+            const hStr = i.toString();
+            fullHours.push(i + '点');
+            fullValues.push(hourlyData[hStr] || 0);
+        }
+
+        const ctx = document.getElementById('hourlyChart').getContext('2d');
+        if (charts.hourly) charts.hourly.destroy();
+
+        // 创建紫色渐变，提升视觉效果
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, '#667eea'); // 顶部紫色
+        gradient.addColorStop(1, '#764ba2'); // 底部深紫
+
+        charts.hourly = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: fullHours, 
+                datasets: [{
+                    label: '对话次数',
+                    data: fullValues,
+                    backgroundColor: gradient, // 【修复核心】改成显眼的渐变色
+                    borderRadius: 4,
+                    barPercentage: 0.6,
+                    hoverBackgroundColor: '#764ba2'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // 允许压扁
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff'
+                    }
+                },
+                scales: {
+                    x: { 
+                        grid: { display: false }, 
+                        ticks: { 
+                            color: '#888', // 刻度颜色改成灰色
+                            font: { size: 9 },
+                            maxRotation: 0,
+                            autoSkip: true,
+                            maxTicksLimit: 8 // 每3个小时显示一个刻度，避免拥挤
+                        } 
+                    },
+                    y: { 
+                        display: false, // Y轴隐藏（美观考量），如果你想看具体数值可以改为 true
+                        beginAtZero: true
+                    } 
+                },
+                layout: { padding: 0 },
+                animation: {
+                    duration: 1500,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+    }
+    // ==========================================
+    // 7. 文案生成逻辑 (你的核心创意)
+    // ==========================================
+
+    function pickOne(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function formatNumber(num) {
+        if (num >= 10000) return (num / 10000).toFixed(1) + 'w';
+        return num.toString();
+    }
+
+    // 第一页内容
+    function updateOverviewCards() {
+        document.getElementById('sessionCount').textContent = analysisData.session_count?.session_count || 0;
+        const totalChars = (analysisData.total_characters || []).reduce((s, it) => s + parseInt(it.counts || 0), 0);
+        document.getElementById('totalChars').textContent = formatNumber(totalChars);
+    }
+
+    function generateMonthCopy() {
+        const chatDaysData = analysisData.chat_days || [];
+        if (!chatDaysData.length) return;
+        
+        const monthCounts = {};
+        chatDaysData.forEach(({ date, counts }) => {
+            const m = new Date(date).getMonth() + 1;
+            monthCounts[m] = (monthCounts[m] || 0) + parseInt(counts || 0);
+        });
+        
+        // 找到最活跃的月份
+        const topMonth = Object.keys(monthCounts).sort((a, b) => monthCounts[b] - monthCounts[a])[0];
+        
+        const templates = {
+            1: ['新年伊始，和 AI 的互动就已拉满！', '一月的新计划，AI 是你的贴身参谋。'],
+            2: ['二月虽短，但你和 AI 的灵感很长。', '开春之际，学习热情率先点燃。'],
+            3: ['三月万物复苏，你的思维也在疯狂生长。', '不仅春暖花开，你的效率也在发芽。'],
+            4: ['四月人间天，你和 AI 的配合似神仙。', '论文与方案，AI 是你最温柔的辅助。'],
+            5: ['五月有劳动节，你确实在与 AI 辛勤协作。', '假期可以休，但求知欲从不打烊。'],
+            6: ['六月期末冲刺，AI 陪你一起打怪升级。', '把“DDL”打成“Done”，这波配合满分。'],
+            7: ['七月流火，你的思考热度也不减半分。', '盛夏除了空调，AI 是你最好的冷静剂。'],
+            8: ['八月积蓄力量，AI 充实了你的技能库。', '为了下半年的爆发，你在这个月默默耕耘。'],
+            9: ['九月新起点，AI 是你的全能导航员。', '金秋收获季，知识也在这一刻结果。'],
+            10: ['十月长假归来，新灵感和 AI 一起落地。', '国庆之后，你和 AI 的默契更上一层楼。'],
+            11: ['十一月不只购物，还在给大脑疯狂“进货”。', '年末前的冲刺，每一步都算数。'],
+            12: ['十二月完美收官，AI 见证了你一年的成长。', '年终复盘，AI 是你最忠实的记录者。']
+        };
+        const text = pickOne(templates[topMonth] || ['这一年，你和 AI 的默契刚刚好。']);
+        document.getElementById('monthCopy').innerHTML = `<span style="color:#667eea;font-size:1.2em">${topMonth}月</span> <br> ${text}`;
+    }
+
+    function generateCharactersCopy() {
+        const total = (analysisData.total_characters || []).reduce((s, it) => s + parseInt(it.counts || 0), 0);
+        const hpWords = 1100000; 
+        const zootopiaLines = 80000;
+        const novels = (total / hpWords).toFixed(2);
+        const movies = (total / zootopiaLines).toFixed(1);
+        
+        const templates = [
+            `这一年你敲下了 ${formatNumber(total)} 字符，工作量相当于 ${novels} 本《哈利波特》。`,
+            `如果把这些对话拍成电影，台词量足足是《疯狂动物城2》的 ${movies} 倍。`,
+            `你的思维是一座矿藏，${formatNumber(total)} 个字符就是你挖掘出的宝石。`
+        ];
+        document.getElementById('charactersCopy').textContent = pickOne(templates);
+    }
+
+    function generateSessionsCopy() {
+        const count = analysisData.session_count?.session_count || 0;
+        let templates = [];
+        if (count > 300) {
+            templates = ['近乎“日更”的高频交流，AI 已经是你的生活必需品。', '比点外卖还勤快，这一年你真的很努力。'];
+        } else if (count > 100) {
+            templates = ['每一次对话都是一次灵感捕捉，你做到了上百次。', '频繁却不盲目，你掌握了驾驭 AI 的最佳节奏。'];
+        } else {
+            templates = ['不常闲聊，但次次切中要害。', '你把 AI 当作精确的工具，用在了刀刃上。'];
+        }
+        document.getElementById('sessionsCopy').textContent = pickOne(templates);
+    }
+
+    // 第二页内容
+    function generateModelsCopy() {
+        const models = analysisData.most_used_models || [];
+        const topModel = models.length > 0 ? models[0].model : '';
+        const box = document.getElementById('modelsCopy');
+        
+        let text = '';
+        if (topModel.includes('reasoner')) {
+            text = '你偏爱深思熟虑，<br><b>Reasoner</b> 的逻辑链与你产生共鸣。';
+        } else if (topModel.includes('chat') || topModel.includes('gpt')) {
+            text = '你喜欢高效直接，<br><b>Chat</b> 模式是你解决问题的快刀。';
+        } else {
+            text = '你的工具箱很丰富，<br>每一种模型都在关键时刻出手。';
+        }
+        box.innerHTML = text;
+    }
+
+    function generateLanguageCopy() {
+        const data = analysisData.most_used_language || [];
+        const box = document.getElementById('languageCopy');
+        let lines = [];
+        
+        // 简易判断
+        const hasPython = data.some(d => d.language.toLowerCase().includes('python'));
+        const hasCpp = data.some(d => d.language.toLowerCase().includes('cpp') || d.language.toLowerCase().includes('c++'));
+        const hasEnglish = data.some(d => d.language.toLowerCase().includes('english'));
+
+        if (hasPython) lines.push('🐍 Python 让灵感自动化，你的代码很有灵性。');
+        if (hasCpp) lines.push('⚡ C++ 展现了硬核一面，追求极致性能。');
+        if (hasEnglish) lines.push('🌍 英语交流无障碍，你的知识边界在世界范围延伸。');
+        if (lines.length === 0) lines.push('📝 中文逻辑严密，你把复杂问题阐述得清清楚楚。');
+        
+        box.innerHTML = lines.slice(0, 2).map(l => `<div>${l}</div>`).join('');
+    }
+
+    // 第三页内容
+    function generateHourlyCopy() {
+        const hourly = analysisData.per_hour_distribution || {};
+        const maxHour = Object.keys(hourly).reduce((a, b) => hourly[b] > (hourly[a] || 0) ? b : a, '12');
+        const h = parseInt(maxHour);
+        
+        let text = '';
+        if (h >= 0 && h < 6) text = '深夜依旧清醒，星星和 AI 见过你最努力的样子。';
+        else if (h < 12) text = '一日之计在于晨，清晨是你灵感爆发的高光时刻。';
+        else if (h < 18) text = '午后时光，你和 AI 的配合稳中有进，效率拉满。';
+        else text = '夜幕降临，思维反而更加活跃，这是属于你的沉浸时刻。';
+        
+        document.getElementById('hourlyCopy').textContent = text;
+    }
+
+    function createTimeStats() {
+        const timeData = analysisData.time_limit || [];
+        let earliest = null, latest = null;
+        timeData.forEach(item => {
+            if (item.earliest_time) earliest = item.earliest_time;
+            if (item.latest_time) latest = item.latest_time;
+        });
+        
+        const container = document.getElementById('timeStats');
+        container.innerHTML = '';
+        
+        if (earliest) {
+            container.innerHTML += `
+                <div class="stat-row">
+                    <span>🌅 最早一次</span>
+                    <strong>${earliest}</strong>
+                </div>`;
+        }
+        if (latest) {
+            container.innerHTML += `
+                <div class="stat-row">
+                    <span>🌃 最晚一次</span>
+                    <strong>${latest}</strong>
+                </div>`;
+        }
+    }
+
+    function generateTimeCopy() {
+        const box = document.getElementById('timeCopy');
+        box.textContent = '时间记录着思考的轨迹，每一分钟都没有被辜负。';
+    }
+
+    // 第四页内容
+    function generatePolitenessSummary() {
+        const list = analysisData.polite_extent || [];
+        const politeWords = ['您', '请', '谢谢', '麻烦'];
+        const impoliteWords = ['滚', '垃圾', '闭嘴'];
+        
+        let pCount = 0, iCount = 0;
+        list.forEach(item => {
+            if (politeWords.some(w => item.word.includes(w))) pCount += parseInt(item.counts);
+            if (impoliteWords.some(w => item.word.includes(w))) iCount += parseInt(item.counts);
+        });
+        
+        document.getElementById('politeness').textContent = pCount;
+        
+        const box = document.getElementById('politenessSummary');
+        const total = pCount + iCount;
+        const ratio = total ? (pCount / total) : 1;
+        
+        let text = '';
+        if (ratio > 0.8) text = '礼貌指数爆表！你把 AI 当作值得尊重的伙伴，AI 也一定很喜欢为你服务。';
+        else if (ratio > 0.5) text = '直率又真实，你与 AI 的交流高效且不拘小节。';
+        else text = '有点“刚”哦，不过 AI 理解你的急切，下次试试多点温柔？';
+        
+        box.textContent = text;
+    }
+
+    function generateRefuseCopy() {
+        const count = analysisData.refuse_counts || 0;
+        document.getElementById('refuseCount').textContent = count;
+        
+        const box = document.getElementById('refuseCopy');
+        let text = '';
+        if (count > 50) text = '你试图跟 AI 聊些“不能说的秘密”，嘿嘿，它守口如瓶。';
+        else if (count > 10) text = '偶尔触碰边界，这是你探索欲的体现。';
+        else if (count === 0) text = '100% 回复率！看来 AI 从未对你“冷暴力”。';
+        else text = '沟通顺畅，大多数时候你们都在同一个频道上。';
+        
+        box.textContent = text;
+    }
+
+    function createEmojiList() {
+        const emojis = analysisData.emoji_counts || [];
+        const container = document.getElementById('emojiList');
+        container.innerHTML = '';
+        
+        // 取前10个
+        emojis.sort((a, b) => b.counts - a.counts).slice(0, 10).forEach(e => {
+            const div = document.createElement('div');
+            div.className = 'emoji-item';
+            div.innerHTML = `<span class="emoji-char">${e.emoji}</span> ${e.counts}`;
+            container.appendChild(div);
+        });
+    }
+
+    function generateEmojiCopy() {
+        const emojis = analysisData.emoji_counts || [];
+        const total = emojis.reduce((s, i) => s + parseInt(i.counts), 0);
+        const box = document.getElementById('emojiCopy');
+        
+        if (total > 100) box.textContent = '表情包达人！你的情绪表达细腻丰富，让对话充满生机。';
+        else if (total > 0) box.textContent = '适度使用表情，恰到好处地为文字增色。';
+        else box.textContent = '冷静克制，你更习惯用纯粹的文字传递思想。';
+    }
+
+    // ==========================================
+    // 8. 导出功能 (核心修改)
+    // ==========================================
+
+    // ==========================================
+    // 8. 导出功能 (核心修改：修复背景模糊问题)
+    // ==========================================
+// ==========================================
+    // 8. 导出功能 (终极修正版：合成法)
+    // ==========================================
+    
+    async function exportPagesAsImages() {
+        if (!window.html2canvas) {
+            alert('导出模块加载中，请稍后再试...');
+            return;
+        }
+
+        const navArrows = document.querySelector('.nav-arrows');
+        const actionArea = document.querySelector('.action-area');
+        
+        // 1. 隐藏干扰元素
+        if (navArrows) navArrows.style.display = 'none';
+        if (actionArea) actionArea.style.visibility = 'hidden';
+
+        const exportPageIndices = [1, 2, 3, 4];
+        
+        try {
+            for (let i of exportPageIndices) {
+                // 切换到该页
+                showPage(i);
+                
+                // 等待图表和DOM稳定
+                await new Promise(resolve => setTimeout(resolve, 600));
+
+                // 获取当前页面的卡片容器
+                const currentPageEl = document.getElementById(`page${i}`);
+                const cardEl = currentPageEl.querySelector('.card-container');
+
+                if (!cardEl) continue;
+
+                // --- 核心修改：手动合成背景和卡片 ---
+
+                // 1. 捕捉卡片 (强制白底，确保清晰)
+                // 临时设置卡片样式以保证截图清晰
+                const originalBg = cardEl.style.background;
+                const originalShadow = cardEl.style.boxShadow;
+                cardEl.style.background = '#ffffff'; // 强制纯白
+                cardEl.style.boxShadow = 'none';     // 暂时移除阴影，稍后画上去或忽略
+
+                // 截取卡片
+                const cardCanvas = await html2canvas(cardEl, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff' // 确保卡片背景不透明
+                });
+
+                // 恢复卡片原样
+                cardEl.style.background = originalBg;
+                cardEl.style.boxShadow = originalShadow;
+
+                // 2. 创建最终画布 (模拟手机屏幕尺寸)
+                const finalCanvas = document.createElement('canvas');
+                const width = 1080;  // 设定高分辨率宽
+                const height = 1920; // 设定高分辨率高
+                finalCanvas.width = width;
+                finalCanvas.height = height;
+                const ctx = finalCanvas.getContext('2d');
+
+                // 3. 绘制渐变背景 (直接画在 canvas 上，不依赖 DOM 截图)
+                // 获取当前 body 的背景样式，或者直接使用预设的漂亮渐变
+                // 这里我们手动创建一个对应当前时间的完美渐变
+                const gradient = ctx.createLinearGradient(0, 0, width, height);
+                // 默认使用清新蓝绿渐变 (Day Theme)，你也可以根据 body 类名判断
+                if (document.body.classList.contains('theme-night')) {
+                    gradient.addColorStop(0, '#30cfd0');
+                    gradient.addColorStop(1, '#330867');
+                } else if (document.body.classList.contains('theme-dusk')) {
+                    gradient.addColorStop(0, '#fa709a');
+                    gradient.addColorStop(1, '#fee140');
+                } else if (document.body.classList.contains('theme-morning')) {
+                    gradient.addColorStop(0, '#a18cd1');
+                    gradient.addColorStop(1, '#fbc2eb');
+                } else {
+                    // Default / Day
+                    gradient.addColorStop(0, '#84fab0');
+                    gradient.addColorStop(1, '#8fd3f4');
+                }
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+
+                // 4. 将截好的卡片画到正中间
+                // 计算卡片在画布中的尺寸（保持比例）
+                const cardAspect = cardCanvas.width / cardCanvas.height;
+                const drawWidth = width * 0.85; // 卡片占宽度的 85%
+                const drawHeight = drawWidth / cardAspect;
+                const drawX = (width - drawWidth) / 2;
+                const drawY = (height - drawHeight) / 2;
+
+                // 4.1 (可选) 手动画一个简单的阴影
+                ctx.save();
+                ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
+                ctx.shadowBlur = 40;
+                ctx.shadowOffsetY = 20;
+                // 绘制卡片
+                ctx.drawImage(cardCanvas, drawX, drawY, drawWidth, drawHeight);
+                ctx.restore();
+
+                // 5. 导出
+                const link = document.createElement('a');
+                link.download = `AI_Memory_2024_Page_${i}.png`;
+                link.href = finalCanvas.toDataURL('image/png');
+                link.click();
+            }
+        } catch (err) {
+            console.error('导出失败:', err);
+            alert('导出遇到问题，请重试');
+        } finally {
+            if (navArrows) navArrows.style.display = 'flex';
+            if (actionArea) actionArea.style.visibility = 'visible';
+            
+            setTimeout(() => {
+                 alert('✅ 导出完成！画面已修复清晰。');
+            }, 500);
+        }
+    }
+});
