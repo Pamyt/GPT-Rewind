@@ -266,15 +266,15 @@ def server_error(err):
 
 
 if __name__ == '__main__':
-    logger.info("=" * 60)
-    logger.info("Starting DeepSeek Annual Summary Server")
-    logger.info("=" * 60)
-    logger.info("Server URL: http://localhost:5173")
-    logger.info("Upload folder: %s", UPLOAD_FOLDER)
-    logger.info("Press Ctrl+C to stop the server")
-    logger.info("=" * 60)
-
+    # Suppress Flask startup messages by disabling logging temporarily
+    cli = logging.getLogger('werkzeug')
+    cli.setLevel(logging.ERROR)
+    
+    print("\033[1m\033[35m  Excellent!\033[0m Now you can access the page on \033[1m\033[34mhttp://127.0.0.1:5173\033[0m")
+    print("\033[32m  Enjoy! Press \033[1mCTRL+C\033[0m\033[32m to quit\033[0m")
+    print()
+    
     try:
-        app.run(debug=True, host='0.0.0.0', port=5173, use_reloader=False)
+        app.run(debug=False, host='0.0.0.0', port=5173, use_reloader=False)
     except KeyboardInterrupt:
-        logger.info("\nServer stopped")
+        print("\n\033[33m👋 Server stopped. Goodbye!\033[0m")
