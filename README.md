@@ -39,7 +39,7 @@ bash ./start_frontend.sh
 .\start_frontend.bat
 ```
 
-3. Open your browser and navigate to `http://localhost:5000`
+3. Open your browser and navigate to `http://localhost:5173`
 
 ## Usage
 
