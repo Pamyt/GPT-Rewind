@@ -6,7 +6,6 @@ anyio==4.10.0
 astroid==4.0.2
 async-timeout==5.0.1
 attrs==25.4.0
-bertopic==0.17.4
 blinker==1.9.0
 Bottleneck==1.4.2
 brotlicffi==1.2.0.0
@@ -15,7 +14,6 @@ cffi==2.0.0
 cfgv==3.5.0
 charset-normalizer==3.4.4
 click==8.3.1
-datasets==4.4.1
 dill==0.4.0
 distlib==0.4.0
 emoji==2.15.0
