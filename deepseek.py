@@ -1,17 +1,18 @@
 """
-DeepSeek Chat Record Annual Summary Tool
-This module provides Flask API endpoints for processing DeepSeek chat records
+DeepSeek Chat Record Annual Summary Tool.
+
+This module provides Flask API endpoints for processing DeepSeek chat records,
+handling file uploads, and generating analysis reports.
 """
+
+import os
+import logging
+import tempfile
+from datetime import datetime
 
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
-import json
-import os
-from pathlib import Path
-import tempfile
-import logging
-from datetime import datetime
 
 # Configure logging
 logging.basicConfig(
@@ -21,6 +22,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Import API functions
+# pylint: disable=import-error
 try:
     from rewind.apis.base_api import (
         most_used_models,
@@ -39,11 +41,11 @@ try:
         time_limit,
     )
     logger.info("✓ All API modules loaded successfully")
-except ImportError as e:
-    logger.warning(f"⚠ Some API modules failed to load: {e}")
+except ImportError as import_err:
+    logger.warning("⚠ Some API modules failed to load: %s", import_err)
 
 # Create Flask app
-app = Flask(__name__, 
+app = Flask(__name__,
             template_folder='frontend/templates',
             static_folder='frontend/static')
 CORS(app)
@@ -57,79 +59,125 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
 
+
 def allowed_file(filename):
-    """Check if file extension is allowed"""
+    """
+    Check if the file extension is allowed.
+
+    Args:
+        filename (str): The name of the file.
+
+    Returns:
+        bool: True if the file extension is allowed, False otherwise.
+    """
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def try_api(api_func, filepath, default_value):
+    """
+    Safely call an API function with error handling.
+
+    Args:
+        api_func (callable): The API function to call.
+        filepath (str): The path to the file to process.
+        default_value (any): The value to return in case of error.
+
+    Returns:
+        any: The result of the API call or the default value.
+    """
+    try:
+        return api_func(filepath)
+    except Exception as exc:  # pylint: disable=broad-except
+        logger.warning("API error in %s: %s", api_func.__name__, str(exc))
+        return default_value
 
 
 @app.route('/')
 def index():
-    """Serve the main page"""
+    """
+    Serve the main page.
+
+    Returns:
+        str: Rendered HTML template.
+    """
     logger.info("GET / - Serving main page")
     return render_template('index.html')
 
 
 @app.route('/api/upload', methods=['POST'])
 def upload_file():
-    """Handle file upload"""
+    """
+    Handle file upload requests.
+
+    Returns:
+        tuple: JSON response and HTTP status code.
+    """
     logger.info("POST /api/upload - File upload request")
-    
+
     if 'file' not in request.files:
         logger.warning("No file in request")
         return jsonify({'error': 'No file provided'}), 400
-    
-    file = request.files['file']
-    if file.filename == '':
+
+    uploaded_file = request.files['file']
+    if uploaded_file.filename == '':
         logger.warning("Empty filename")
         return jsonify({'error': 'No selected file'}), 400
-    
-    if not allowed_file(file.filename):
-        logger.warning(f"Invalid file type: {file.filename}")
+
+    if not allowed_file(uploaded_file.filename):
+        logger.warning("Invalid file type: %s", uploaded_file.filename)
         return jsonify({'error': 'Only JSON files are supported'}), 400
-    
+
     try:
         # Validate file size before saving
-        file.seek(0, os.SEEK_END)
-        file_size = file.tell()
-        file.seek(0)
-        
+        uploaded_file.seek(0, os.SEEK_END)
+        file_size = uploaded_file.tell()
+        uploaded_file.seek(0)
+
         if file_size > MAX_FILE_SIZE:
-            logger.warning(f"File too large: {file_size} bytes")
-            return jsonify({'error': f'File too large (max {MAX_FILE_SIZE} bytes)'}), 400
-        
+            logger.warning("File too large: %d bytes", file_size)
+            return jsonify({
+                'error': f'File too large (max {MAX_FILE_SIZE} bytes)'
+            }), 400
+
         # Save file temporarily
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(UPLOAD_FOLDER, f"{datetime.now().timestamp()}_{filename}")
-        file.save(filepath)
-        
-        logger.info(f"File saved: {filepath} ({file_size} bytes)")
-        
+        filename = secure_filename(uploaded_file.filename)
+        timestamp = datetime.now().timestamp()
+        filepath = os.path.join(UPLOAD_FOLDER, f"{timestamp}_{filename}")
+        uploaded_file.save(filepath)
+
+        logger.info("File saved: %s (%d bytes)", filepath, file_size)
+
         return jsonify({
             'message': 'File uploaded successfully',
             'filepath': filepath,
             'filename': filename
         }), 200
-    
-    except Exception as e:
-        logger.error(f"Upload error: {str(e)}")
-        return jsonify({'error': f'Upload failed: {str(e)}'}), 500
+
+    except Exception as exc:  # pylint: disable=broad-except
+        logger.error("Upload error: %s", str(exc))
+        return jsonify({'error': f'Upload failed: {str(exc)}'}), 500
 
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
-    """Analyze the uploaded chat record"""
+    """
+    Analyze the uploaded chat record.
+
+    Returns:
+        tuple: JSON response and HTTP status code.
+    """
     logger.info("POST /api/analyze - Analysis request")
-    
+
     data = request.get_json()
     filepath = data.get('filepath')
-    
+
     if not filepath or not os.path.exists(filepath):
-        logger.warning(f"Invalid filepath: {filepath}")
+        logger.warning("Invalid filepath: %s", filepath)
         return jsonify({'error': 'Invalid file path'}), 400
-    
+
     try:
-        logger.info(f"Starting analysis for: {filepath}")
-        
+        logger.info("Starting analysis for: %s", filepath)
+
         # Process the data with error handling
         result = {
             'most_used_models': try_api(most_used_models, filepath, []),
@@ -143,68 +191,90 @@ def analyze():
             'time_limit': try_api(time_limit, filepath, []),
             'session_count': try_api(session_count, filepath, {'session_count': 0})
         }
-        
+
         logger.info("Analysis completed successfully")
         return jsonify(result), 200
-    
-    except Exception as e:
-        logger.error(f"Analysis error: {str(e)}")
-        return jsonify({'error': f'Analysis failed: {str(e)}'}), 500
+
+    except Exception as exc:  # pylint: disable=broad-except
+        logger.error("Analysis error: %s", str(exc))
+        return jsonify({'error': f'Analysis failed: {str(exc)}'}), 500
     finally:
         # Clean up uploaded file
         try:
             if os.path.exists(filepath):
                 os.remove(filepath)
-                logger.info(f"Cleaned up: {filepath}")
-        except Exception as e:
-            logger.warning(f"Failed to cleanup: {e}")
-
-
-def try_api(api_func, filepath, default_value):
-    """Safely call API function with error handling"""
-    try:
-        return api_func(filepath)
-    except Exception as e:
-        logger.warning(f"API error in {api_func.__name__}: {str(e)}")
-        return default_value
+                logger.info("Cleaned up: %s", filepath)
+        except OSError as exc:
+            logger.warning("Failed to cleanup: %s", exc)
 
 
 @app.route('/api/static/<path:filename>')
 def serve_static(filename):
-    """Serve static files"""
+    """
+    Serve static files.
+
+    Args:
+        filename (str): The path of the file to serve.
+
+    Returns:
+        Response: The file response.
+    """
     return send_from_directory('frontend/static', filename)
 
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    """Health check endpoint"""
-    return jsonify({'status': 'ok', 'timestamp': datetime.now().isoformat()}), 200
+    """
+    Health check endpoint.
+
+    Returns:
+        tuple: JSON status and HTTP status code.
+    """
+    return jsonify({
+        'status': 'ok',
+        'timestamp': datetime.now().isoformat()
+    }), 200
 
 
 @app.errorhandler(404)
-def not_found(e):
-    """Handle 404 errors"""
+def not_found(err):  # pylint: disable=unused-argument
+    """
+    Handle 404 errors.
+
+    Args:
+        err: The error object.
+
+    Returns:
+        tuple: JSON error message and 404 status code.
+    """
     return jsonify({'error': 'Not found'}), 404
 
 
 @app.errorhandler(500)
-def server_error(e):
-    """Handle 500 errors"""
-    logger.error(f"Server error: {str(e)}")
+def server_error(err):
+    """
+    Handle 500 errors.
+
+    Args:
+        err: The error object.
+
+    Returns:
+        tuple: JSON error message and 500 status code.
+    """
+    logger.error("Server error: %s", str(err))
     return jsonify({'error': 'Internal server error'}), 500
 
 
 if __name__ == '__main__':
-    logger.info("="*60)
+    logger.info("=" * 60)
     logger.info("Starting DeepSeek Annual Summary Server")
-    logger.info("="*60)
-    logger.info(f"Server URL: http://localhost:5173")
-    logger.info(f"Upload folder: {UPLOAD_FOLDER}")
+    logger.info("=" * 60)
+    logger.info("Server URL: http://localhost:5173")
+    logger.info("Upload folder: %s", UPLOAD_FOLDER)
     logger.info("Press Ctrl+C to stop the server")
-    logger.info("="*60)
-    
+    logger.info("=" * 60)
+
     try:
-            app.run(debug=True, host='0.0.0.0', port=5173, use_reloader=False)
+        app.run(debug=True, host='0.0.0.0', port=5173, use_reloader=False)
     except KeyboardInterrupt:
         logger.info("\nServer stopped")
-

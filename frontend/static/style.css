@@ -142,10 +142,10 @@ body.export-mode .card-container {
     /* 核心修复：将背景临时改为不透明的纯白。
        这解决了半透明背景在截图时可能跑到文字上方，或导致颜色混合过深的问题。 */
     background: #ffffff !important;
-    
+
     /* 可选：导出时去掉阴影，让画面更干净、边缘更锐利 */
     box-shadow: none !important;
-    
+
     /* 强制提升层级，确保卡片内容一定在背景之上 */
     position: relative;
     z-index: 99999 !important;

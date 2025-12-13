@@ -6,3 +6,5 @@ venv/
 data/*.json
 
 !data/example.json
+
+rewind/utils/model_based/

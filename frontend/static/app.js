@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         3: document.getElementById('page3'),
         4: document.getElementById('page4')
     };
-    
+
     const loadingSection = document.getElementById('loadingSection');
     const errorSection = document.getElementById('errorSection');
     const prevArrow = document.getElementById('prevArrow');
@@ -37,15 +37,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // 2. 事件监听
     // ==========================================
-    
+
     // 上传相关
     uploadBtn.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', handleFileSelect);
-    
+
     // 导航相关
     if (prevArrow) prevArrow.addEventListener('click', () => changePage(-1));
     if (nextArrow) nextArrow.addEventListener('click', () => changePage(1));
-    
+
     // 功能相关
     if (retryBtn) retryBtn.addEventListener('click', resetUI);
     if (restartBtn) restartBtn.addEventListener('click', resetUI);
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function displayResults() {
         showLoading(false);
         errorSection.style.display = 'none';
-        
+
         // 设置背景主题
         setBackgroundTheme();
 
@@ -163,13 +163,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (Object.keys(hourly).length > 0) {
             peakHour = Object.keys(hourly).reduce((a, b) => hourly[b] > (hourly[a] || 0) ? b : a);
         }
-        
+
         const h = parseInt(peakHour, 10);
         const body = document.body;
-        
+
         // 移除旧类
         body.classList.remove('theme-morning', 'theme-dusk', 'theme-night', 'theme-day');
-        
+
         if (h >= 5 && h <= 11) {
             body.classList.add('theme-morning');
         } else if (h >= 16 && h <= 19) {
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (targetPage) {
             targetPage.style.display = 'flex'; // 使用 flex 布局居中
             // 强制重绘触发动画
-            void targetPage.offsetWidth; 
+            void targetPage.offsetWidth;
             targetPage.classList.add('active');
         }
 
@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
         analysisData = null;
         fileInput.value = '';
         fileNameDisplay.textContent = '';
-        
+
         // 销毁图表
         if (charts.models) charts.models.destroy();
         if (charts.daily) charts.daily.destroy();
@@ -275,8 +275,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const chatDaysData = analysisData.chat_days || [];
         // 取最近 14 天数据，避免X轴太挤，或者根据屏幕宽度取值
         // 如果想看全年趋势，可以用 all 数据，但在手机上会很密
-        const displayData = chatDaysData.slice(-15); 
-        
+        const displayData = chatDaysData.slice(-15);
+
         const dates = displayData.map(item => item.date.substring(5)); // 只显示 "MM-DD"
         const counts = displayData.map(item => parseInt(item.counts || 0));
 
@@ -303,26 +303,26 @@ document.addEventListener('DOMContentLoaded', () => {
             options: {
                 responsive: true,
                 maintainAspectRatio: false, // 【关键】允许高度被 CSS 压缩
-                plugins: { 
+                plugins: {
                     legend: { display: false },
                     tooltip: { mode: 'index', intersect: false }
                 },
                 scales: {
-                    x: { 
+                    x: {
                         display: true, // 【用户要求】显示 X 轴
                         grid: { display: false },
-                        ticks: { 
-                            font: { size: 10 }, 
+                        ticks: {
+                            font: { size: 10 },
                             maxRotation: 0, // 防止文字倾斜占高度
                             autoSkip: true,
-                            maxTicksLimit: 5 
+                            maxTicksLimit: 5
                         }
                     },
-                    y: { 
+                    y: {
                         display: true, // 【用户要求】显示 Y 轴
                         border: { display: false },
                         grid: { color: '#f0f0f0' },
-                        ticks: { 
+                        ticks: {
                             font: { size: 9 },
                             maxTicksLimit: 4 // 限制刻度数量，节省高度
                         }
@@ -358,13 +358,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 maintainAspectRatio: false, // 【关键】
                 cutout: '60%', // 环稍微细一点
                 plugins: {
-                    legend: { 
+                    legend: {
                         position: 'right', // 放在右侧节省垂直空间
-                        labels: { 
-                            boxWidth: 8, 
+                        labels: {
+                            boxWidth: 8,
                             font: { size: 10 },
                             padding: 10
-                        } 
+                        }
                     }
                 },
                 layout: { padding: 0 }
@@ -376,10 +376,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function createLanguageChart() {
         const languageData = analysisData.most_used_language || [];
         const chartDiv = document.getElementById('languageChart');
-        
+
         // 取 Top 5 语言，防止条目太多撑不开
         const sortedLangs = languageData.sort((a,b) => b.counts - a.counts).slice(0, 5);
-        
+
         const languages = {};
         sortedLangs.forEach(item => {
             languages[item.language] = parseInt(item.counts || 0);
@@ -389,15 +389,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // 【关键】极小的边距，利用每一寸空间
             grid: { top: 5, right: 10, bottom: 5, left: 5, containLabel: true },
             xAxis: { type: 'value', show: false },
-            yAxis: { 
-                type: 'category', 
+            yAxis: {
+                type: 'category',
                 data: Object.keys(languages),
                 axisLine: { show: false },
                 axisTick: { show: false },
-                axisLabel: { 
+                axisLabel: {
                     fontSize: 10,
                     width: 70, // 限制文字宽度
-                    overflow: 'truncate' 
+                    overflow: 'truncate'
                 }
             },
             series: [{
@@ -455,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
         charts.hourly = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: fullHours, 
+                labels: fullHours,
                 datasets: [{
                     label: '对话次数',
                     data: fullValues,
@@ -468,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
             options: {
                 responsive: true,
                 maintainAspectRatio: false, // 允许压扁
-                plugins: { 
+                plugins: {
                     legend: { display: false },
                     tooltip: {
                         mode: 'index',
@@ -479,20 +479,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 },
                 scales: {
-                    x: { 
-                        grid: { display: false }, 
-                        ticks: { 
+                    x: {
+                        grid: { display: false },
+                        ticks: {
                             color: '#888', // 刻度颜色改成灰色
                             font: { size: 9 },
                             maxRotation: 0,
                             autoSkip: true,
                             maxTicksLimit: 8 // 每3个小时显示一个刻度，避免拥挤
-                        } 
+                        }
                     },
-                    y: { 
+                    y: {
                         display: false, // Y轴隐藏（美观考量），如果你想看具体数值可以改为 true
                         beginAtZero: true
-                    } 
+                    }
                 },
                 layout: { padding: 0 },
                 animation: {
@@ -522,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 2. 更新字数 (区分用户与 AI)
         const totalCharsData = analysisData.total_characters || [];
-        
+
         let userTotal = 0;
         let aiTotal = 0;
 
@@ -569,36 +569,36 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const box = document.getElementById('charactersCopy');
-        
+
         // 计算倍率 (AI 写了多少字 / 用户写了多少字)
         const ratio = userTotal > 0 ? (aiTotal / userTotal).toFixed(1) : 0;
 
         // 依然保留之前的哈利波特/电影对比，因为总产出依然很壮观
-        const hpWords = 1100000; 
+        const hpWords = 1100000;
         const novels = (grandTotal / hpWords).toFixed(2);
-        
+
         const templates = [
             `这一年，你每敲下 1 个字，AI 就会回馈给你 ${ratio} 个字的灵感。`,
             `你们一共创造了 ${formatNumber(grandTotal)} 字符，相当于合写了 ${novels} 本《哈利波特》。`,
             `你的 ${formatNumber(userTotal)} 字提问，撬动了 AI ${formatNumber(aiTotal)} 字的庞大思考。`
         ];
-        
+
         box.textContent = pickOne(templates);
     }
 
     function generateMonthCopy() {
         const chatDaysData = analysisData.chat_days || [];
         if (!chatDaysData.length) return;
-        
+
         const monthCounts = {};
         chatDaysData.forEach(({ date, counts }) => {
             const m = new Date(date).getMonth() + 1;
             monthCounts[m] = (monthCounts[m] || 0) + parseInt(counts || 0);
         });
-        
+
         // 找到最活跃的月份
         const topMonth = Object.keys(monthCounts).sort((a, b) => monthCounts[b] - monthCounts[a])[0];
-        
+
         const templates = {
             1: ['新年伊始，和 AI 的互动就已拉满！', '一月的新计划，AI 是你的贴身参谋。'],
             2: ['二月虽短，但你和 AI 的灵感很长。', '开春之际，学习热情率先点燃。'],
@@ -636,7 +636,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const models = analysisData.most_used_models || [];
         const topModel = models.length > 0 ? models[0].model : '';
         const box = document.getElementById('modelsCopy');
-        
+
         let text = '';
         if (topModel.includes('reasoner')) {
             text = '你偏爱深思熟虑，<br><b>Reasoner</b> 的逻辑链与你产生共鸣。';
@@ -652,7 +652,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = analysisData.most_used_language || [];
         const box = document.getElementById('languageCopy');
         let lines = [];
-        
+
         // 简易判断
         const hasPython = data.some(d => d.language.toLowerCase().includes('python'));
         const hasCpp = data.some(d => d.language.toLowerCase().includes('cpp') || d.language.toLowerCase().includes('c++'));
@@ -662,7 +662,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (hasCpp) lines.push('⚡ C++ 展现了硬核一面，追求极致性能。');
         if (hasEnglish) lines.push('🌍 英语交流无障碍，你的知识边界在世界范围延伸。');
         if (lines.length === 0) lines.push('📝 中文逻辑严密，你把复杂问题阐述得清清楚楚。');
-        
+
         box.innerHTML = lines.slice(0, 2).map(l => `<div>${l}</div>`).join('');
     }
 
@@ -671,13 +671,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const hourly = analysisData.per_hour_distribution || {};
         const maxHour = Object.keys(hourly).reduce((a, b) => hourly[b] > (hourly[a] || 0) ? b : a, '12');
         const h = parseInt(maxHour);
-        
+
         let text = '';
         if (h >= 0 && h < 6) text = '深夜依旧清醒，星星和 AI 见过你最努力的样子。';
         else if (h < 12) text = '一日之计在于晨，清晨是你灵感爆发的高光时刻。';
         else if (h < 18) text = '午后时光，你和 AI 的配合稳中有进，效率拉满。';
         else text = '夜幕降临，思维反而更加活跃，这是属于你的沉浸时刻。';
-        
+
         document.getElementById('hourlyCopy').textContent = text;
     }
 
@@ -688,10 +688,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item.earliest_time) earliest = item.earliest_time;
             if (item.latest_time) latest = item.latest_time;
         });
-        
+
         const container = document.getElementById('timeStats');
         container.innerHTML = '';
-        
+
         if (earliest) {
             container.innerHTML += `
                 <div class="stat-row">
@@ -718,38 +718,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const list = analysisData.polite_extent || [];
         const politeWords = ['您', '请', '谢谢', '麻烦'];
         const impoliteWords = ['滚', '垃圾', '闭嘴'];
-        
+
         let pCount = 0, iCount = 0;
         list.forEach(item => {
             if (politeWords.some(w => item.word.includes(w))) pCount += parseInt(item.counts);
             if (impoliteWords.some(w => item.word.includes(w))) iCount += parseInt(item.counts);
         });
-        
+
         document.getElementById('politeness').textContent = pCount;
-        
+
         const box = document.getElementById('politenessSummary');
         const total = pCount + iCount;
         const ratio = total ? (pCount / total) : 1;
-        
+
         let text = '';
         if (ratio > 0.8) text = '礼貌指数爆表！你把 AI 当作值得尊重的伙伴，AI 也一定很喜欢为你服务。';
         else if (ratio > 0.5) text = '直率又真实，你与 AI 的交流高效且不拘小节。';
         else text = '有点“刚”哦，不过 AI 理解你的急切，下次试试多点温柔？';
-        
+
         box.textContent = text;
     }
 
     function generateRefuseCopy() {
         const count = analysisData.refuse_counts || 0;
         document.getElementById('refuseCount').textContent = count;
-        
+
         const box = document.getElementById('refuseCopy');
         let text = '';
         if (count > 50) text = '你试图跟 AI 聊些“不能说的秘密”，嘿嘿，它守口如瓶。';
         else if (count > 10) text = '偶尔触碰边界，这是你探索欲的体现。';
         else if (count === 0) text = '100% 回复率！看来 AI 从未对你“冷暴力”。';
         else text = '沟通顺畅，大多数时候你们都在同一个频道上。';
-        
+
         box.textContent = text;
     }
 
@@ -757,7 +757,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const emojis = analysisData.emoji_counts || [];
         const container = document.getElementById('emojiList');
         container.innerHTML = '';
-        
+
         // 取前10个
         emojis.sort((a, b) => b.counts - a.counts).slice(0, 10).forEach(e => {
             const div = document.createElement('div');
@@ -771,7 +771,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const emojis = analysisData.emoji_counts || [];
         const total = emojis.reduce((s, i) => s + parseInt(i.counts), 0);
         const box = document.getElementById('emojiCopy');
-        
+
         if (total > 100) box.textContent = '表情包达人！你的情绪表达细腻丰富，让对话充满生机。';
         else if (total > 0) box.textContent = '适度使用表情，恰到好处地为文字增色。';
         else box.textContent = '冷静克制，你更习惯用纯粹的文字传递思想。';
@@ -787,7 +787,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
     // 8. 导出功能 (终极修正版：合成法)
     // ==========================================
-    
+
     async function exportPagesAsImages() {
         if (!window.html2canvas) {
             alert('导出模块加载中，请稍后再试...');
@@ -796,18 +796,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const navArrows = document.querySelector('.nav-arrows');
         const actionArea = document.querySelector('.action-area');
-        
+
         // 1. 隐藏干扰元素
         if (navArrows) navArrows.style.display = 'none';
         if (actionArea) actionArea.style.visibility = 'hidden';
 
         const exportPageIndices = [1, 2, 3, 4];
-        
+
         try {
             for (let i of exportPageIndices) {
                 // 切换到该页
                 showPage(i);
-                
+
                 // 等待图表和DOM稳定
                 await new Promise(resolve => setTimeout(resolve, 600));
 
@@ -864,7 +864,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     gradient.addColorStop(0, '#84fab0');
                     gradient.addColorStop(1, '#8fd3f4');
                 }
-                
+
                 ctx.fillStyle = gradient;
                 ctx.fillRect(0, 0, width, height);
 
@@ -897,7 +897,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             if (navArrows) navArrows.style.display = 'flex';
             if (actionArea) actionArea.style.visibility = 'visible';
-            
+
             setTimeout(() => {
                  alert('✅ 导出完成！画面已修复清晰。');
             }, 500);

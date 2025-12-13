@@ -1,6 +1,6 @@
 """analyze time data"""
 from typing import List, Dict, Any
-from datetime import time, timedelta
+from datetime import time
 from dateutil import parser
 from rewind.utils.time_utils import delta_to_dhms
 
@@ -149,40 +149,16 @@ def count_per_hour_distribution(data_list: List[Dict[str, Any]]) -> Dict[Any, An
 
     for session in data_list:
         inserted_at = session.get("inserted_at", "")
-        updated_at = session.get("updated_at", "")
 
-        if not inserted_at or not updated_at:
+        if not inserted_at:
             continue
 
         # Parse ISO datetime strings
         start_time = parser.isoparse(inserted_at)
-        end_time = parser.isoparse(updated_at)
 
         # Get the start and end hours
         start_hour = start_time.hour
-        end_hour = end_time.hour
 
-        # Handle sessions within the same hour
-        if start_time.date() == end_time.date() and start_hour == end_hour:
-            hour_distribution[start_hour] += 1
-            continue
-
-        # Handle sessions that span multiple hours/days
-        current_time = start_time
-
-        while current_time <= end_time:
-            current_hour = current_time.hour
-            hour_distribution[current_hour] += 1
-
-            # Move to the next hour
-            current_time = current_time.replace(minute=0, second=0, microsecond=0)
-
-            # Add one hour to properly handle day transitions
-            current_time = current_time + timedelta(hours=1)
-
-            # If we've moved past the end time, break
-            if current_time > end_time:
-                break
-
+        hour_distribution[start_hour] += 1
 
     return hour_distribution

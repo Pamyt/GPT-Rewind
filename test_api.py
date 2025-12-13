@@ -1,12 +1,8 @@
 """
 Test script to verify the DeepSeek API endpoints
 """
-
-import json
-import requests
-import time
 import os
-from pathlib import Path
+import requests
 
 # Configuration
 BASE_URL = "http://localhost:5000"
@@ -26,52 +22,55 @@ def test_server_connection():
         if response.status_code == 200:
             print("✓ Server is running")
             return True
-        else:
-            print(f"✗ Server returned status {response.status_code}")
-            return False
+
+        print(f"✗ Server returned status {response.status_code}")
+        return False
     except requests.exceptions.ConnectionError:
         print("✗ Cannot connect to server")
         print(f"  Make sure the server is running at {BASE_URL}")
         return False
-    except Exception as e:
-        print(f"✗ Error: {str(e)}")
+    except requests.exceptions.RequestException as request_error:
+        print(f"✗ Request error: {str(request_error)}")
         return False
 
 def test_file_upload():
     """Test file upload endpoint"""
     print_header("Testing File Upload")
-    
+
     if not os.path.exists(TEST_DATA_PATH):
         print(f"✗ Test data file not found: {TEST_DATA_PATH}")
         return None
-    
+
     try:
-        with open(TEST_DATA_PATH, 'rb') as f:
-            files = {'file': f}
+        with open(TEST_DATA_PATH, 'rb') as file_handle:
+            files = {'file': file_handle}
             response = requests.post(f"{BASE_URL}/api/upload", files=files)
-        
+
         if response.status_code == 200:
             data = response.json()
             print("✓ File uploaded successfully")
             print(f"  Filepath: {data.get('filepath')}")
             print(f"  Filename: {data.get('filename')}")
             return data.get('filepath')
-        else:
-            print(f"✗ Upload failed with status {response.status_code}")
-            print(f"  Response: {response.text}")
-            return None
-    except Exception as e:
-        print(f"✗ Error during upload: {str(e)}")
+
+        print(f"✗ Upload failed with status {response.status_code}")
+        print(f"  Response: {response.text}")
+        return None
+    except (IOError, OSError) as file_error:
+        print(f"✗ File error during upload: {str(file_error)}")
+        return None
+    except requests.exceptions.RequestException as request_error:
+        print(f"✗ Request error during upload: {str(request_error)}")
         return None
 
 def test_data_analysis(filepath):
     """Test data analysis endpoint"""
     print_header("Testing Data Analysis")
-    
+
     if not filepath:
         print("✗ No filepath provided")
         return False
-    
+
     try:
         print("Analyzing data (this may take a moment)...")
         response = requests.post(
@@ -79,50 +78,49 @@ def test_data_analysis(filepath):
             json={"filepath": filepath},
             timeout=60
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             print("✓ Data analysis successful")
-            
+
             # Print summary of results
             print("\nAnalysis Results Summary:")
-            
-            if 'session_count' in data:
-                print(f"  • Session count: {data['session_count'].get('session_count', 'N/A')}")
-            
-            if 'most_used_models' in data:
-                print(f"  • Most used models: {len(data['most_used_models'])} model(s)")
-            
-            if 'total_characters' in data:
-                total = sum(int(item.get('counts', 0)) for item in data.get('total_characters', []))
-                print(f"  • Total characters: {total}")
-            
-            if 'refuse_counts' in data:
-                print(f"  • Refuse counts: {data['refuse_counts']}")
-            
-            if 'emoji_counts' in data:
-                print(f"  • Emoji counts: {len(data['emoji_counts'])} unique emoji(s)")
-            
-            if 'chat_days' in data:
-                print(f"  • Chat days: {len(data['chat_days'])} day(s)")
-            
-            if 'most_used_language' in data:
-                print(f"  • Languages detected: {len(data['most_used_language'])} language(s)")
-            
-            if 'polite_extent' in data:
-                print(f"  • Polite words: {len(data['polite_extent'])} type(s)")
-            
+            _print_analysis_summary(data)
             return True
-        else:
-            print(f"✗ Analysis failed with status {response.status_code}")
-            print(f"  Response: {response.text}")
-            return False
+
+        print(f"✗ Analysis failed with status {response.status_code}")
+        print(f"  Response: {response.text}")
+        return False
     except requests.exceptions.Timeout:
         print("✗ Analysis timed out (data may be too large)")
         return False
-    except Exception as e:
-        print(f"✗ Error during analysis: {str(e)}")
+    except requests.exceptions.RequestException as request_error:
+        print(f"✗ Request error during analysis: {str(request_error)}")
         return False
+
+def _print_analysis_summary(data):
+    """Print summary of analysis results to reduce branching in main function"""
+    result_fields = [
+        ('session_count', lambda x: x['session_count'].get('session_count', 'N/A'),\
+            'Session count'),
+        ('most_used_models', lambda x: len(x['most_used_models']), 'Most used models', 'model(s)'),
+        ('total_characters', lambda x: sum(int(item.get('counts', 0)) \
+            for item in x.get('total_characters', [])), 'Total characters'),
+        ('refuse_counts', lambda x: x['refuse_counts'], 'Refuse counts'),
+        ('emoji_counts', lambda x: len(x['emoji_counts']), 'Emoji counts', 'unique emoji(s)'),
+        ('chat_days', lambda x: len(x['chat_days']), 'Chat days', 'day(s)'),
+        ('most_used_language', lambda x: len(x['most_used_language']),\
+            'Languages detected', 'language(s)'),
+        ('polite_extent', lambda x: len(x['polite_extent']), 'Polite words', 'type(s)')
+    ]
+
+    for field_info in result_fields:
+        field_name = field_info[0]
+        if field_name in data:
+            value = field_info[1](data)
+            label = field_info[2]
+            suffix = field_info[3] if len(field_info) > 3 else ''
+            print(f"  • {label}: {value} {suffix}")
 
 def main():
     """Run all tests"""
@@ -130,18 +128,18 @@ def main():
     print("╔" + "="*58 + "╗")
     print("║" + " "*10 + "DeepSeek API Test Suite" + " "*25 + "║")
     print("╚" + "="*58 + "╝")
-    
+
     # Test 1: Server connection
     if not test_server_connection():
         print("\n✗ Tests aborted: Server is not running")
         return
-    
+
     # Test 2: File upload
     filepath = test_file_upload()
     if not filepath:
         print("\n✗ Tests aborted: File upload failed")
         return
-    
+
     # Test 3: Data analysis
     if test_data_analysis(filepath):
         print_header("All Tests Passed!")
@@ -157,6 +155,6 @@ def main():
 if __name__ == "__main__":
     print("Note: Make sure the server is running before running this test")
     print("Start the server with: ./start_frontend.sh (or start_frontend.bat on Windows)")
-    
+
     input("\nPress Enter to start tests...")
     main()
