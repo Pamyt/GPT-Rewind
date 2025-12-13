@@ -17,7 +17,7 @@ A comprehensive chat history analysis tool for AI conversations, providing insig
 - **Export Functionality**: Save your annual summary as an image
 
 ## Change Log
-- Support Windows platform on 2025/12/13 🎉 Thanks for bug report from @zengly22
+- Support Windows platform on 2025/12/13 🎉 Thanks for bug report from [@zengly22](https://github.com/zengly22)
 
 ## Installation
 
