@@ -20,7 +20,7 @@ def emoji_counts(json_path: str) -> List[Dict[str, Any]]:
 
 
 def polite_extent(json_path: str) -> List[Dict[str, Any]]:
-    """counting polite and impolite words, returns list of dicts with format: [{"word":"您","counts":"10"}, ...]"""
+    """counting polite and impolite words, returns list of dicts"""
 
     data = load_json(json_path)
     data = update_data(data)
