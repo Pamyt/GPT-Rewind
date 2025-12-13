@@ -1,7 +1,9 @@
 # GPT-Rewind
 A simple DeepSeek Annual Summary Tool
 
-![GPTLens Logo](assets/imgs/icon.svg)
+[中文版](README_ZH.md) | English
+
+<img src="assets/imgs/icon.svg" width="150" alt="GPTLens Logo" />
 
 A comprehensive chat history analysis tool for AI conversations, providing insights and visualizations of your interaction patterns with AI models.
 
@@ -13,6 +15,9 @@ A comprehensive chat history analysis tool for AI conversations, providing insig
 - **Language Detection**: Identify natural languages and programming languages used
 - **Behavioral Insights**: Discover politeness patterns, emoji usage, and interaction styles
 - **Export Functionality**: Save your annual summary as an image
+
+## Change Log
+- Support Windows platform on 2025/12/13 🎉 Thanks for bug report from @zengly22
 
 ## Installation
 
@@ -96,23 +101,6 @@ Key dependencies include:
 
 For a complete list, see [`requirements.txt`](requirements.txt).
 
-## Development
-
-### Running Tests
-
-To test the API endpoints:
-
-```bash
-python test_api.py
-```
-
-### Code Quality
-
-This project uses pre-commit hooks for code quality:
-```bash
-pip install pre-commit
-pre-commit install
-```
 
 ## Contributing
 
