@@ -311,10 +311,11 @@ showError('分析失败: ' + error.message);
         if (charts.models) charts.models.destroy();
         if (charts.daily) charts.daily.destroy();
         if (charts.hourly) charts.hourly.destroy();
-        if (charts.language) {
+        if (charts.language && typeof charts.language.dispose === 'function') {
             charts.language.dispose();
-            charts.language = null;
         }
+        charts.language = null; 
+        document.getElementById('languageChart').innerHTML = ''; // 确保清空 HTML 内容
 
         errorSection.style.display = 'none';
         showPage(0); // 回到上传页
@@ -500,58 +501,127 @@ showError('分析失败: ' + error.message);
     }
 
     // 第二页：语言分布 (ECharts 紧凑版)
+   // 第二页：语言分布 (Apple 风格 HTML版)
+  // 第二页：语言分布 (带切换功能的 Apple 风格版)
     function createLanguageChart() {
         const languageData = analysisData.most_used_language || [];
-        const chartDiv = document.getElementById('languageChart');
+        const container = document.getElementById('languageChart');
+        
+        // 1. 清空容器并初始化样式
+        if (charts.language && typeof charts.language.dispose === 'function') {
+            charts.language.dispose();
+            charts.language = null;
+        }
+        container.innerHTML = ''; 
+        container.className = 'apple-chart-container';
+        container.style.height = 'auto'; // 自适应高度
 
-        // 取 Top 5 语言，防止条目太多撑不开
-        const sortedLangs = languageData.sort((a,b) => b.counts - a.counts).slice(0, 5);
+        // 2. 数据分类
+        // 注意：数据中的 counts 可能是字符串或数字，统一转为 Int
+        const codeData = languageData.filter(d => d.type === 'code');
+        const naturalData = languageData.filter(d => d.type === 'natural');
 
-        const languages = {};
-        sortedLangs.forEach(item => {
-            languages[item.language] = parseInt(item.counts || 0);
+        // 3. 创建切换按钮 UI (Segmented Control)
+        const toggleWrapper = document.createElement('div');
+        toggleWrapper.className = 'lang-toggle-wrapper';
+        toggleWrapper.innerHTML = `
+            <div class="lang-toggle">
+                <button class="lang-btn active" data-type="code">编程语言</button>
+                <button class="lang-btn" data-type="natural">自然语言</button>
+            </div>
+        `;
+        container.appendChild(toggleWrapper);
+
+        // 4. 创建列表容器
+        const listWrapper = document.createElement('div');
+        listWrapper.className = 'lang-list-wrapper';
+        container.appendChild(listWrapper);
+
+        // 5. 核心渲染函数
+        function renderList(type) {
+            // 简单的淡出淡入效果
+            listWrapper.style.opacity = '0.5';
+            
+            setTimeout(() => {
+                listWrapper.innerHTML = ''; // 清空列表
+                
+                const data = type === 'code' ? codeData : naturalData;
+                
+                // 排序并取 Top 5
+                const sorted = data
+                    .sort((a, b) => parseInt(b.counts) - parseInt(a.counts))
+                    .slice(0, 4);
+
+                if (sorted.length === 0) {
+                    listWrapper.innerHTML = '<div style="text-align:center;color:#999;padding:30px;">暂无数据</div>';
+                    listWrapper.style.opacity = '1';
+                    return;
+                }
+
+                const maxCount = parseInt(sorted[0].counts);
+
+                sorted.forEach((item, index) => {
+                    const count = parseInt(item.counts);
+                    const percent = (count / maxCount) * 100;
+                    
+                    // 优化显示名称
+                    let displayName = item.language;
+                    if (type === 'natural') {
+                        if (displayName === 'chinese') displayName = '中文';
+                        else if (displayName === 'english') displayName = 'English';
+                        else if (displayName === 'else') displayName = '通用/其他';
+                    }
+
+                    // 创建条目结构
+                    const group = document.createElement('div');
+                    group.className = 'apple-bar-group';
+                    // 级联延迟动画，每次切换都重新播放
+                    group.style.animation = 'none';
+                    group.offsetHeight; /* 触发重绘 */
+                    group.style.animation = `fadeSlideIn 0.5s forwards ${index * 0.05}s`;
+                    group.style.opacity = '0'; // 初始隐藏
+
+                    group.innerHTML = `
+                        <div class="apple-bar-header">
+                            <span class="apple-bar-label">${displayName}</span>
+                            <span class="apple-bar-value">${formatNumber(count)}</span>
+                        </div>
+                        <div class="apple-track">
+                            <div class="apple-fill" style="width: 0%" data-width="${percent}%"></div>
+                        </div>
+                    `;
+                    listWrapper.appendChild(group);
+                });
+
+                // 恢复透明度
+                listWrapper.style.opacity = '1';
+
+                // 触发进度条动画
+                requestAnimationFrame(() => {
+                    const bars = listWrapper.querySelectorAll('.apple-fill');
+                    bars.forEach(bar => {
+                        bar.style.width = bar.getAttribute('data-width');
+                    });
+                });
+            }, 150); // 短暂延迟以产生切换感
+        }
+
+        // 6. 绑定点击事件
+        const btns = toggleWrapper.querySelectorAll('.lang-btn');
+        btns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                // UI 状态切换
+                btns.forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                // 重新渲染
+                renderList(e.target.dataset.type);
+            });
         });
 
-        const option = {
-            // 【关键】极小的边距，利用每一寸空间
-            grid: { top: 5, right: 10, bottom: 5, left: 5, containLabel: true },
-            xAxis: { type: 'value', show: false },
-            yAxis: {
-                type: 'category',
-                data: Object.keys(languages),
-                axisLine: { show: false },
-                axisTick: { show: false },
-                axisLabel: {
-                    fontSize: 10,
-                    width: 70, // 限制文字宽度
-                    overflow: 'truncate'
-                }
-            },
-            series: [{
-                data: Object.values(languages),
-                type: 'bar',
-                barWidth: 12, // 细条
-                itemStyle: {
-                    color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-                        { offset: 0, color: '#667eea' },
-                        { offset: 1, color: '#764ba2' }
-                    ]),
-                    borderRadius: [0, 6, 6, 0]
-                },
-                label: {
-                    show: true,
-                    position: 'right',
-                    fontSize: 9,
-                    formatter: '{c}'
-                }
-            }]
-        };
-
-        if (charts.language) charts.language.dispose();
-        charts.language = echarts.init(chartDiv);
-        charts.language.setOption(option);
+        // 7. 初始渲染 (默认显示代码)
+        renderList('code');
     }
-
     // 第三页：小时分布 (紧凑版)
     // 第三页：小时分布 (修复：颜色改成深色，防止在白底上看不见)
 // 第三页：小时分布 (已开启纵轴显示)

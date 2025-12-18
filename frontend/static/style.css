@@ -101,11 +101,103 @@ h3 { font-size: 1.1em; margin: 15px 0 5px 0; }
     width: fit-content;     /* (可选) 让按钮宽度适应文字，防止太宽误触，或者删掉这行让它占满宽度方便点击 */
 }
 /* 图表容器 */
-.chart-box { margin:5px 0; width: 100%;position:relative;flex:1;min-height:0;}
-.chart-container-row { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-.chart-half { flex: 1; }
-.text-half { flex: 1; font-size: 0.85em; }
+/* =========================================
+   UI 优化：Apple 风格条形图 (Language)
+   ========================================= */
+.apple-chart-container {
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+}
 
+.apple-bar-group {
+    margin-bottom: 15px; /* 条目间距 */
+    opacity: 0;
+    animation: fadeSlideIn 0.5s forwards; /* 进场动画 */
+}
+
+/* 标签行：左边语言名，右边数值 */
+.apple-bar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    color: #444;
+    font-weight: 500;
+}
+
+.apple-bar-value {
+    color: var(--accent); /* 使用你的主题色 */
+    font-weight: 700;
+    font-size: 1.1em;
+}
+
+.apple-bar-unit {
+    font-size: 0.8em;
+    color: #999;
+    font-weight: normal;
+    margin-left: 2px;
+}
+
+/* 进度条轨道（灰色背景） */
+.apple-track {
+    width: 100%;
+    height: 10px; /* 稍微厚一点 */
+    background-color: rgba(0, 0, 0, 0.06); /* 淡淡的灰色 */
+    border-radius: 10px; /* 胶囊圆角 */
+    overflow: hidden;
+    position: relative;
+}
+
+/* 进度条填充（动态部分） */
+.apple-fill {
+    height: 100%;
+    width: 0%; /* 初始宽度为0，由JS控制变长 */
+    background: linear-gradient(90deg, #667eea, #764ba2); /* 你的主题渐变色 */
+    border-radius: 10px;
+    
+    /* 核心：Apple 风格的动画曲线 */
+    /* cubic-bezier(0.25, 1, 0.5, 1) 模拟 iOS 的丝滑减速效果 */
+    transition: width 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* 进场动画 */
+@keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   UI 优化：第二页布局调整 (Models & Language)
+   ========================================= */
+
+/* 修改 .chart-container-row 让其变身垂直布局 */
+/* 原本你是 display: flex; align-items: center; gap: 15px; */
+.chart-container-row {
+    display: flex;
+    flex-direction: column; /* 关键：改为垂直排列 */
+    align-items: center;    /* 居中对齐 */
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.chart-half {
+    width: 100%;      /* 占满宽度 */
+    height: 70px;    /* 给环形图足够的固定高度 */
+    flex: none;       /* 禁止伸缩 */
+}
+
+.text-half {
+    width: 100%;
+    text-align: center; /* 文字居中 */
+    font-size: 0.95em;
+}
+
+/* 让原本用于 ECharts 的容器高度自适应，因为我们要塞 HTML 进去了 */
+#languageChart {
+    height: auto !important;
+    min-height: 200px;
+}
 /* Emoji 云 */
 .emoji-cloud { display: grid; grid-template-columns:repeat(3,1fr); gap: 5px; margin: 5px 0; }
 .emoji-item { background: #f0f2f5; padding: 4px 8px; border-radius: 12px; font-size: 0.8em; display: flex; align-items: center; }
@@ -355,3 +447,53 @@ body.export-mode .card-container {
 .provider-btn[data-type="qwen"]:hover { border-color: #764ba2; color: #764ba2; }
 .provider-btn[data-type="anthropic"]:hover { border-color: #d97d56; color: #d97d56; }
 .provider-btn[data-type="openai"]:hover { border-color: #10a37f; color: #10a37f; }
+/* =========================================
+   UI 优化：iOS 分段控制器 (Toggle Switch)
+   ========================================= */
+.lang-toggle-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px; /* 与下方图表的间距 */
+    margin-top:5px;
+}
+
+.lang-toggle {
+    background-color: rgba(118, 118, 128, 0.12); /* 经典的 iOS 灰色背景 */
+    border-radius: 9px;
+    padding: 0px;
+    display: flex;
+    position: relative;
+    user-select: none;
+}
+
+.lang-btn {
+    border: none;
+    background: transparent;
+    padding: 6px 24px;
+    font-size: 13px;
+    font-weight: 500; /* Apple 字体通常不用太粗 */
+    color: #636366;
+    cursor: pointer;
+    border-radius: 7px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 2;
+}
+
+/* 激活状态：白色背景 + 阴影 */
+.lang-btn.active {
+    background-color: #ffffff;
+    color: #000000;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04);
+    font-weight: 600;
+}
+
+.lang-btn:hover:not(.active) {
+    color: #333;
+}
+
+/* 列表容器，用于切换时的过渡 */
+.lang-list-wrapper {
+    min-height: 180px; /* 防止切换时高度跳动 */
+    transition: opacity 0.2s ease;
+}
