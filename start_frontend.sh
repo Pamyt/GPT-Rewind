@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# 如果任何语句返回非真值，则退出
 set -e
 
 # Colors for output
@@ -80,20 +81,24 @@ if [ "$NEED_INSTALL" = true ]; then
 
     # Install Flask and Flask-CORS first
     echo -ne "${GREEN}[1/2] Installing Flask...${NC}"
-    pip install -q flask flask-cors --upgrade 2>&1 | grep -v "WARNING: Ignoring invalid distribution" || true
+    # 使用 || true 防止 pip 版本警告导致 set -e 退出
+    pip install -q flask flask-cors --upgrade 2>&1 | grep -v "WARNING" || true
     echo -e " ${GREEN}✓${NC}"
 
-    # Install requirements.txt with a filling progress bar
+    # Install requirements.txt
     if [ -f "requirements.txt" ]; then
         TOTAL=$(grep -E "^[A-Za-z0-9]" requirements.txt | wc -l | tr -d ' ')
         [ -z "$TOTAL" ] && TOTAL=0
         CURRENT=0
 
-        # Start progress bar line
         progress_bar "$CURRENT" "$TOTAL"
 
+        # 临时关闭 set -e，因为管道中的 grep -v 如果没有匹配到内容会返回 1，导致脚本中断
+        set +e
+        
+        # 使用 -u 确保 pip 输出不缓冲
         pip install -r requirements.txt 2>&1 | \
-            grep -v "WARNING: Ignoring invalid distribution" | \
+            grep -v "WARNING" | \
             grep -v "Requirement already satisfied" | \
             while IFS= read -r line; do
                 if [[ "$line" == Collecting* ]]; then
@@ -104,6 +109,9 @@ if [ "$NEED_INSTALL" = true ]; then
                     progress_bar "$CURRENT" "$TOTAL"
                 fi
             done
+        
+        # 恢复 set -e
+        set -e
 
         # Finish progress bar
         CURRENT=$TOTAL
@@ -116,9 +124,8 @@ if [ "$NEED_INSTALL" = true ]; then
     echo ""
 fi
 
-# Show completion message
 echo -e "${NC} ${CYAN} Dependencies done!${NC} ${CYAN}Now trying to start the server...${NC}"
 echo ""
 
-# Run the Flask app
-python3 deepseek.py
+# 关键修改：添加 -u 参数禁止缓冲，确保日志实时输出
+python -u deepseek.py
