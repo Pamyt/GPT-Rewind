@@ -37,7 +37,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # Clear screen and show welcome message
 clear
 echo ""
-echo -e "${BLUE}  Welcome to use DeepSeek Annual Summary Tool!${NC}"
+echo -e "${BLUE}  Welcome to use AI Annual Summary Tool!${NC}"
 echo -e "${BLUE}  Just wait a second to build the dependencies...${NC}"
 echo ""
 

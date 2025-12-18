@@ -87,8 +87,19 @@ h3 { font-size: 1.1em; margin: 15px 0 5px 0; }
     background: var(--accent); color: #fff; border: none; padding: 12px 20px;
     border-radius: 8px; width: 100%; margin-top: 20px; cursor: pointer;
 }
-.btn-link { background: none; border: none; color: #999; margin-top: 10px; cursor: pointer; text-decoration: underline; }
-
+.btn-link {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    text-decoration: underline;
+    
+    /* --- 修改部分 --- */
+    display: block;         /* 让它变成块级元素，独占一行 */
+    margin: 15px auto 0;    /* 上边距15px，左右自动(居中)，下边距0 */
+    text-align: center;     /* 确保文字内部也居中 */
+    width: fit-content;     /* (可选) 让按钮宽度适应文字，防止太宽误触，或者删掉这行让它占满宽度方便点击 */
+}
 /* 图表容器 */
 .chart-box { margin:5px 0; width: 100%;position:relative;flex:1;min-height:0;}
 .chart-container-row { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
@@ -99,35 +110,100 @@ h3 { font-size: 1.1em; margin: 15px 0 5px 0; }
 .emoji-cloud { display: grid; grid-template-columns:repeat(3,1fr); gap: 5px; margin: 5px 0; }
 .emoji-item { background: #f0f2f5; padding: 4px 8px; border-radius: 12px; font-size: 0.8em; display: flex; align-items: center; }
 .emoji-char { font-size: 1.2em; margin-right: 5px; }
+/* ... (找到 style.css 中的 .nav-arrows 相关代码，替换以下部分) ... */
+/* =========================================
+   导航箭头 (完整修复版)
+   ========================================= */
 
-/* 导航箭头 (右侧改为上下翻页逻辑更符合直觉，或者保留左右) */
-/* 这里按你要求的向右箭头，但我建议上下切换更符合年度报告习惯。下面按你的“向右”要求做 */
-.nav-arrows { position: fixed; right: 20px; top: 50%; transform: translateY(-50%); z-index: 100; display: flex; flex-direction: column; gap: 20px; }
+/* =========================================
+   导航箭头 (绝对定位防抖动版)
+   ========================================= */
+
+/* 1. 父容器：定宽高，垂直居中 */
+.nav-arrows {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    
+    /* 关键修改：设定固定尺寸 */
+    width: 40px; 
+    height: 100px; /* 40px(上箭头) + 20px(间距) + 40px(下箭头) */
+    
+    /* 关键修改：移除 flex 布局，改用普通块级布局 */
+    /* display: flex;  <-- 删除 */
+    /* gap: 20px;      <-- 删除 */
+}
+
+/* 2. 箭头按钮通用样式 */
 .arrow {
-    width: 40px; height: 40px; background: rgba(255,255,255,0.3); border-radius: 50%;
-    display: flex; justify-content: center; align-items: center; cursor: pointer;
-    backdrop-filter: blur(5px); transition: background 0.3s;
-}
-.arrow::after { content: ''; border: solid #fff; border-width: 0 3px 3px 0; padding: 5px; }
-/* 下一页箭头 */
-.arrow.down::after { transform: rotate(45deg); margin-left: -2px; } /* 向右箭头视觉 */
-/* 上一页箭头 */
-.arrow.up::after { transform: rotate(-135deg); margin-left: 5px; } /* 向左箭头视觉 */
-
-.arrow:hover { background: rgba(255,255,255,0.6); }
-
-/* 浮动动画 */
-.arrow.down { animation: floatRight 1.5s infinite ease-in-out; }
-@keyframes floatRight {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(5px); }
-}
-.arrow.up { animation: floatLeft 1.5s infinite ease-in-out; }
-@keyframes floatLeft {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(-5px); }
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    
+    /* 关键修改：改为绝对定位 */
+    position: absolute;
+    left: 0; /* 靠左对齐容器 */
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    
+    /* 动画保持不变 */
+    animation: floatVertical 3s ease-in-out infinite;
+    transition: background 0.3s;
 }
 
+/* 3. 分别定位上下箭头 */
+
+/* 上箭头：固定在容器顶部 */
+.arrow.up {
+    top: 0;
+}
+
+/* 下箭头：固定在容器底部 */
+.arrow.down {
+    bottom: 0;
+}
+
+/* --- 以下样式保持不变 --- */
+
+.arrow:hover {
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.arrow:active {
+    animation-play-state: paused; 
+    transform: scale(0.9) translateY(0);
+}
+
+.arrow::after {
+    content: '';
+    border: solid #fff;
+    border-width: 0 3px 3px 0;
+    padding: 5px;
+    display: block;
+}
+
+.arrow.down::after {
+    transform: rotate(45deg);
+    margin-top: -2px;
+}
+
+.arrow.up::after {
+    transform: rotate(-135deg);
+    margin-top: 2px;
+}
+
+@keyframes floatVertical {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+/* 删除原本的 floatRight 和 floatLeft 动画 */
 /* Helper */
 .content-center { text-align: center; color: white; }
 .file-name { margin-top: 10px; color: rgba(255,255,255,0.8); font-size: 0.9em; }
@@ -210,3 +286,72 @@ body.export-mode .card-container {
     height: 30px;
     background-color: #ddd;
 }
+/* =========================================
+   新增：Provider 选择弹窗样式
+   ========================================= */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-box {
+    background: #fff;
+    width: 90%;
+    max-width: 360px;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    text-align: center;
+    transform: translateY(0);
+    animation: slideUp 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.provider-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.provider-btn {
+    background: #f5f7fa;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 15px 5px;
+    font-size: 0.95em;
+    font-weight: 600;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.provider-btn:hover {
+    background: #eef1f6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.provider-btn:active {
+    transform: scale(0.96);
+}
+
+/* 选中或高亮某个平台的颜色定制（可选） */
+.provider-btn[data-type="deepseek"]:hover { border-color: #4facfe; color: #4facfe; }
+.provider-btn[data-type="qwen"]:hover { border-color: #764ba2; color: #764ba2; }
+.provider-btn[data-type="anthropic"]:hover { border-color: #d97d56; color: #d97d56; }
+.provider-btn[data-type="openai"]:hover { border-color: #10a37f; color: #10a37f; }

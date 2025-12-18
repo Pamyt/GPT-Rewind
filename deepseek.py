@@ -13,6 +13,7 @@ from datetime import datetime
 from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
+from rewind.utils.providers import ProviderType
 
 # Configure logging
 logging.basicConfig(
@@ -65,29 +66,40 @@ def allowed_file(filename):
     Check if the file extension is allowed.
 
     Args:
-        filename (str): The name of the file.
+        filename (str): The name of the file to check.
 
     Returns:
-        bool: True if the file extension is allowed, False otherwise.
+        bool: True if extension is allowed, False otherwise.
     """
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def try_api(api_func, filepath, default_value):
+def try_api(api_func, filepath, default_value, provider_type='deepseek'):
     """
-    Safely call an API function with error handling.
+    Safely call an API function with error handling and provider type injection.
 
     Args:
-        api_func (callable): The API function to call.
-        filepath (str): The path to the file to process.
-        default_value (any): The value to return in case of error.
+        api_func: The API function to call.
+        filepath: Path to the JSON file.
+        default_value: Return value on failure.
+        provider_type: The AI provider (deepseek, qwen, etc.).
 
     Returns:
-        any: The result of the API call or the default value.
+        The result of api_func or default_value on error.
     """
     try:
-        return api_func(filepath)
-    except Exception as exc:  # pylint: disable=broad-except
+        # 尝试调用带有 provider_type 参数的函数
+        return api_func(filepath, ProviderType(provider_type))
+    except TypeError:
+        try:
+            return api_func(filepath)
+        except Exception as exc:  # pylint: disable=broad-exception-caught
+            logger.warning(
+                "API error in %s (fallback): %s",
+                api_func.__name__, str(exc)
+            )
+            return default_value
+    except Exception as exc:  # pylint: disable=broad-exception-caught
         logger.warning("API error in %s: %s", api_func.__name__, str(exc))
         return default_value
 
@@ -98,7 +110,7 @@ def index():
     Serve the main page.
 
     Returns:
-        str: Rendered HTML template.
+        Rendered HTML template for the index page.
     """
     logger.info("GET / - Serving main page")
     return render_template('index.html')
@@ -108,9 +120,10 @@ def index():
 def upload_file():
     """
     Handle file upload requests.
+    Expects 'file' and 'provider_type' in FormData.
 
     Returns:
-        tuple: JSON response and HTTP status code.
+        JSON response with file path or error message.
     """
     logger.info("POST /api/upload - File upload request")
 
@@ -119,6 +132,9 @@ def upload_file():
         return jsonify({'error': 'No file provided'}), 400
 
     uploaded_file = request.files['file']
+    # 从 FormData 获取 provider_type，默认为 deepseek
+    provider_type = request.form.get('provider_type', 'deepseek')
+
     if uploaded_file.filename == '':
         logger.warning("Empty filename")
         return jsonify({'error': 'No selected file'}), 400
@@ -140,20 +156,31 @@ def upload_file():
             }), 400
 
         # Save file temporarily
+        # 构造文件名格式：时间戳___厂商类型___原始文件名
+        # 这样可以在 /api/analyze 阶段从文件名中还原出厂商类型，而无需修改前端 analyzeData 逻辑
         filename = secure_filename(uploaded_file.filename)
+        safe_provider = secure_filename(provider_type)
         timestamp = datetime.now().timestamp()
-        filepath = os.path.join(UPLOAD_FOLDER, f"{timestamp}_{filename}")
+
+        # 使用三个下划线作为分隔符，降低文件名冲突概率
+        saved_filename = f"{timestamp}___{safe_provider}___{filename}"
+        filepath = os.path.join(UPLOAD_FOLDER, saved_filename)
+
         uploaded_file.save(filepath)
 
-        logger.info("File saved: %s (%d bytes)", filepath, file_size)
+        logger.info(
+            "File saved: %s (%d bytes) [Provider: %s]",
+            filepath, file_size, safe_provider
+        )
 
         return jsonify({
             'message': 'File uploaded successfully',
             'filepath': filepath,
-            'filename': filename
+            'filename': filename,
+            'provider_type': safe_provider
         }), 200
 
-    except Exception as exc:  # pylint: disable=broad-except
+    except Exception as exc:  # pylint: disable=broad-exception-caught
         logger.error("Upload error: %s", str(exc))
         return jsonify({'error': f'Upload failed: {str(exc)}'}), 500
 
@@ -162,9 +189,10 @@ def upload_file():
 def analyze():
     """
     Analyze the uploaded chat record.
+    Extracts provider_type from the filepath to determine analysis logic.
 
     Returns:
-        tuple: JSON response and HTTP status code.
+        JSON response containing analysis metrics.
     """
     logger.info("POST /api/analyze - Analysis request")
 
@@ -175,27 +203,64 @@ def analyze():
         logger.warning("Invalid filepath: %s", filepath)
         return jsonify({'error': 'Invalid file path'}), 400
 
+    # 从文件名中解析 provider_type
     try:
-        logger.info("Starting analysis for: %s", filepath)
+        basename = os.path.basename(filepath)
+        # 分割文件名：timestamp___provider___filename
+        parts = basename.split('___')
+        if len(parts) >= 3:
+            provider_type = parts[1]
+        else:
+            provider_type = 'deepseek'  # 默认回退
+    except Exception:  # pylint: disable=broad-exception-caught
+        provider_type = 'deepseek'
 
+    logger.info(
+        "Starting analysis for: %s using provider: %s",
+        filepath, provider_type
+    )
+
+    try:
         # Process the data with error handling
+        # Pass provider_type to all try_api calls
+        # 格式化字典以避免行过长
         result = {
-            'most_used_models': try_api(most_used_models, filepath, []),
-            'total_characters': try_api(total_characters, filepath, []),
-            'most_used_language': try_api(most_used_language, filepath, []),
-            'refuse_counts': try_api(refuse_counts, filepath, 0),
-            'emoji_counts': try_api(emoji_counts, filepath, []),
-            'polite_extent': try_api(polite_extent, filepath, []),
-            'chat_days': try_api(chat_days, filepath, []),
-            'per_hour_distribution': try_api(per_hour_distribution, filepath, {}),
-            'time_limit': try_api(time_limit, filepath, []),
-            'session_count': try_api(session_count, filepath, {'session_count': 0})
+            'most_used_models': try_api(
+                most_used_models, filepath, [], provider_type
+            ),
+            'total_characters': try_api(
+                total_characters, filepath, [], provider_type
+            ),
+            'most_used_language': try_api(
+                most_used_language, filepath, [], provider_type
+            ),
+            'refuse_counts': try_api(
+                refuse_counts, filepath, 0, provider_type
+            ),
+            'emoji_counts': try_api(
+                emoji_counts, filepath, [], provider_type
+            ),
+            'polite_extent': try_api(
+                polite_extent, filepath, [], provider_type
+            ),
+            'chat_days': try_api(
+                chat_days, filepath, [], provider_type
+            ),
+            'per_hour_distribution': try_api(
+                per_hour_distribution, filepath, {}, provider_type
+            ),
+            'time_limit': try_api(
+                time_limit, filepath, [], provider_type
+            ),
+            'session_count': try_api(
+                session_count, filepath, {'session_count': 0}, provider_type
+            )
         }
 
         logger.info("Analysis completed successfully")
         return jsonify(result), 200
 
-    except Exception as exc:  # pylint: disable=broad-except
+    except Exception as exc:  # pylint: disable=broad-exception-caught
         logger.error("Analysis error: %s", str(exc))
         return jsonify({'error': f'Analysis failed: {str(exc)}'}), 500
     finally:
@@ -211,13 +276,13 @@ def analyze():
 @app.route('/api/static/<path:filename>')
 def serve_static(filename):
     """
-    Serve static files.
+    Serve static files from the frontend directory.
 
     Args:
-        filename (str): The path of the file to serve.
+        filename (str): Name of the file to serve.
 
     Returns:
-        Response: The file response.
+        Response: File content.
     """
     return send_from_directory('frontend/static', filename)
 
@@ -225,10 +290,10 @@ def serve_static(filename):
 @app.route('/health', methods=['GET'])
 def health_check():
     """
-    Health check endpoint.
+    Health check endpoint for monitoring.
 
     Returns:
-        tuple: JSON status and HTTP status code.
+        JSON status and timestamp.
     """
     return jsonify({
         'status': 'ok',
@@ -237,15 +302,15 @@ def health_check():
 
 
 @app.errorhandler(404)
-def not_found(err):  # pylint: disable=unused-argument
+def not_found(_err):
     """
     Handle 404 errors.
 
     Args:
-        err: The error object.
+        _err: The error object (unused).
 
     Returns:
-        tuple: JSON error message and 404 status code.
+        JSON error message and 404 status.
     """
     return jsonify({'error': 'Not found'}), 404
 
@@ -259,7 +324,7 @@ def server_error(err):
         err: The error object.
 
     Returns:
-        tuple: JSON error message and 500 status code.
+        JSON error message and 500 status.
     """
     logger.error("Server error: %s", str(err))
     return jsonify({'error': 'Internal server error'}), 500
@@ -269,11 +334,14 @@ if __name__ == '__main__':
     # Suppress Flask startup messages by disabling logging temporarily
     cli = logging.getLogger('werkzeug')
     cli.setLevel(logging.ERROR)
-    
-    print("\033[1m\033[35m  Excellent!\033[0m Now you can access the page on \033[1m\033[34mhttp://127.0.0.1:5173\033[0m")
+
+    print(
+        "\033[1m\033[35m  Excellent!\033[0m Now you can access the page on "
+        "\033[1m\033[34mhttp://127.0.0.1:5173\033[0m"
+    )
     print("\033[32m  Enjoy! Press \033[1mCTRL+C\033[0m\033[32m to quit\033[0m")
     print()
-    
+
     try:
         app.run(debug=False, host='0.0.0.0', port=5173, use_reloader=False)
     except KeyboardInterrupt:

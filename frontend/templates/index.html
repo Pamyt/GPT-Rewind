@@ -144,7 +144,21 @@
         <div id="prevArrow" class="arrow up" style="display: none;"></div>
         <div id="nextArrow" class="arrow down" style="display: none;"></div>
     </div>
+<div id="providerModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+        <h3>请选择数据来源平台</h3>
+        <p class="subtitle" style="color: #666; margin-bottom: 20px;">选择对应的 AI 厂商以进行分析</p>
+        
+        <div class="provider-grid">
+            <button class="provider-btn" data-type="deepseek">DeepSeek</button>
+            <button class="provider-btn" data-type="qwen">Qwen (通义千问)</button>
+            <button class="provider-btn" data-type="anthropic">Claude (Anthropic)</button>
+            <button class="provider-btn" data-type="openai">ChatGPT (OpenAI)</button>
+        </div>
 
+        <button id="cancelProviderBtn" class="btn-link" style="margin-top: 15px; font-size: 0.9em;">取消</button>
+    </div>
+</div>
    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

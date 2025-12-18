@@ -33,49 +33,105 @@ document.addEventListener('DOMContentLoaded', () => {
     const retryBtn = document.getElementById('retryBtn');
     const exportBtn = document.getElementById('exportBtn');
     const restartBtn = document.getElementById('restartBtn');
+if (prevArrow) prevArrow.addEventListener('click', () => changePage(-1));
+if (nextArrow) nextArrow.addEventListener('click', () => changePage(1));
 
+// 功能相关
+if (retryBtn) retryBtn.addEventListener('click', resetUI);
+if (restartBtn) restartBtn.addEventListener('click', resetUI);
+if (exportBtn) exportBtn.addEventListener('click', exportPagesAsImages);
     // ==========================================
     // 2. 事件监听
     // ==========================================
 
     // 上传相关
-    uploadBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', handleFileSelect);
+// ==========================================
+    // 2. 事件监听 & 3. 文件处理 (逻辑重构版)
+    // ==========================================
 
-    // 导航相关
-    if (prevArrow) prevArrow.addEventListener('click', () => changePage(-1));
-    if (nextArrow) nextArrow.addEventListener('click', () => changePage(1));
+    // 状态变量：用于存储用户先选中的厂商类型
+    let currentProviderType = null;
+    document.addEventListener('keydown', (e) => {
+        // 如果还在上传页 (pageUpload 显示中)，则不响应键盘翻页
+        if (pages[0].style.display !== 'none') return;
 
-    // 功能相关
-    if (retryBtn) retryBtn.addEventListener('click', resetUI);
-    if (restartBtn) restartBtn.addEventListener('click', resetUI);
-    if (exportBtn) exportBtn.addEventListener('click', exportPagesAsImages);
+        // 如果正在显示错误页或加载页，也不响应
+        if (errorSection.style.display !== 'none' || loadingSection.style.display !== 'none') return;
 
-    // 窗口调整时重绘 ECharts
-    window.addEventListener('resize', () => {
-        if (charts.language) charts.language.resize();
+        if (e.key === 'ArrowUp') {
+            // 模拟点击上一页 (或者直接调用 changePage)
+            changePage(-1);
+        } else if (e.key === 'ArrowDown') {
+            // 模拟点击下一页
+            changePage(1);
+        }
+    });
+    // 获取弹窗相关元素
+    const providerModal = document.getElementById('providerModal');
+    const cancelProviderBtn = document.getElementById('cancelProviderBtn');
+    const providerBtns = document.querySelectorAll('.provider-btn');
+
+    // --- A. 点击“上传 JSON 记录”按钮 -> 显示厂商选择弹窗 ---
+    uploadBtn.addEventListener('click', () => {
+        // 重置状态
+        currentProviderType = null;
+        fileInput.value = ''; 
+        // 显示弹窗
+        providerModal.style.display = 'flex';
     });
 
-    // ==========================================
-    // 3. 文件处理与 API 通信
-    // ==========================================
+    // --- B. 弹窗中点击“取消” ---
+    if (cancelProviderBtn) {
+        cancelProviderBtn.addEventListener('click', () => {
+            providerModal.style.display = 'none';
+        });
+    }
+
+    // --- C. 弹窗中选择具体厂商 -> 记录类型 -> 触发文件选择 ---
+    providerBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // 1. 获取并保存厂商类型
+            currentProviderType = e.target.dataset.type;
+            
+            // 2. 隐藏弹窗
+            providerModal.style.display = 'none';
+
+            // 3. 自动触发文件选择框 (这是关键一步)
+            // 用户在选完厂商后，浏览器会立即弹出文件选择窗口
+            fileInput.click();
+        });
+    });
+
+    // --- D. 文件选择完毕 -> 携带厂商信息上传 ---
+    fileInput.addEventListener('change', handleFileSelect);
 
     function handleFileSelect(event) {
         const file = event.target.files[0];
+        // 如果用户在文件选择框点了“取消”，file 就是 undefined，直接返回即可
         if (!file) return;
 
+        // 校验文件格式
         if (!file.name.endsWith('.json')) {
             showError('请选择 .json 格式的文件');
             return;
         }
 
-        fileNameDisplay.textContent = `✓ ${file.name}`;
-        uploadFile(file);
+        // 安全校验：确保有厂商类型（理论上流程是对的，这里防一手）
+        if (!currentProviderType) {
+            showError('未选择厂商，请重新上传');
+            return;
+        }
+
+        fileNameDisplay.textContent = `✓ ${file.name} (${currentProviderType})`;
+        
+        // 立即开始上传
+        uploadFile(file, currentProviderType);
     }
 
-    function uploadFile(file) {
+    function uploadFile(file, providerType) {
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('provider_type', providerType); // 关键：后端需要这个字段
 
         showLoading(true);
 
@@ -91,29 +147,32 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => {
             showError('上传失败: ' + error.message);
+            // 出错后清空状态，允许重试
+            fileInput.value = '';
+            currentProviderType = null;
         });
     }
-
     function analyzeData() {
-        fetch('/api/analyze', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filepath: uploadedFilePath })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) throw new Error(data.error);
-            analysisData = data;
-            // 确保数据加载完后有短暂延迟，体验更流畅
-            setTimeout(() => {
-                displayResults();
-            }, 500);
-        })
-        .catch(error => {
-            showError('分析失败: ' + error.message);
-        });
-    }
+fetch('/api/analyze', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ filepath: uploadedFilePath })
+})
+.then(response => response.json())
+.then(data => {
+if (data.error) throw new Error(data.error);
+analysisData = data;
+// 确保数据加载完后有短暂延迟，体验更流畅
+setTimeout(() => {
+displayResults();
+}, 500);
+})
+.catch(error => {
+showError('分析失败: ' + error.message);
+});
+}
 
+    // (analyzeData 函数保持不变...)
     // ==========================================
     // 4. 页面渲染与逻辑核心
     // ==========================================
