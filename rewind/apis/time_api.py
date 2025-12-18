@@ -8,12 +8,14 @@ from rewind.data_process import (
     chat_themost,
     count_per_hour_distribution,
 )
+from rewind.utils.providers import ProviderType
 
-def chat_days(json_path: str) -> List[Dict[str, Any]]:
+def chat_days(json_path: str, provider_type: ProviderType = ProviderType.DEEPSEEK) \
+    -> List[Dict[str, Any]]:
     """each day chat frequency"""
 
     data = load_json(json_path)
-    data = update_data(data)
+    data = update_data(data, provider_type=provider_type)
 
     full_distribution = chat_frequency_distribution(data)
     day_distribution = full_distribution["day_distribution"]
@@ -24,11 +26,12 @@ def chat_days(json_path: str) -> List[Dict[str, Any]]:
 
     return answer_list
 
-def time_limit(json_path: str) -> List[Dict[str, Any]]:
+def time_limit(json_path: str, provider_type: ProviderType = ProviderType.DEEPSEEK) \
+    -> List[Dict[str, Any]]:
     """time limit for earliest and latest"""
 
     data = load_json(json_path)
-    data = update_data(data)
+    data = update_data(data, provider_type=provider_type)
 
     full_distribution = chat_themost(data)
     earliest_time = full_distribution["earliest_time"]
@@ -39,11 +42,12 @@ def time_limit(json_path: str) -> List[Dict[str, Any]]:
     return [{"earliest_time": earliest_time}, {"latest_time": latest_time},
             {"earliest_session": earliest_session}, {"latest_session": latest_session}]
 
-def per_hour_distribution(json_path: str) -> Dict[Any, Any]:
+def per_hour_distribution(json_path: str, provider_type: ProviderType = ProviderType.DEEPSEEK) \
+    -> Dict[Any, Any]:
     """distribution of sessions across 24 hours of the day"""
 
     data = load_json(json_path)
-    data = update_data(data)
+    data = update_data(data, provider_type=provider_type)
 
     hour_distribution = count_per_hour_distribution(data)
 
@@ -51,10 +55,11 @@ def per_hour_distribution(json_path: str) -> Dict[Any, Any]:
 
 def main():
     """main function"""
-    data_path = "data/conversations.json"
-    print(chat_days(data_path))
-    print(time_limit(data_path))
-    print(per_hour_distribution(data_path))
+    data_path = "data/qwen_conversations.json"
+    print(chat_days(data_path, provider_type= ProviderType.QWEN))
+    print(time_limit(data_path, provider_type= ProviderType.QWEN))
+    print(per_hour_distribution(data_path, provider_type= ProviderType.QWEN))
+
 
 if __name__ == "__main__":
     main()

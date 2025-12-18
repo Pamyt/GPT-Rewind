@@ -1,0 +1,245 @@
+{
+  "success": true,
+"request_id": "1f8af3a1-837a-4c7e-b82a-f0d741eb8f0a",
+"data": [
+{
+    "id": "00cc1e43-e9b4-4905-92ff-9c708dcdb758",
+    "user_id": "9e3fa2d5-8599-4f80-b939-5bd56fa043a3",
+    "title": "Simple Math Problem",
+    "chat": {
+      "history": {
+        "messages": {
+          "69d5a5cf-c7a1-48b6-916e-ad9d12f5e71d": {
+            "id": "69d5a5cf-c7a1-48b6-916e-ad9d12f5e71d",
+            "role": "user",
+            "content": "1+1=?",
+            "models": [
+              "qwen3-max-2025-10-30"
+            ],
+            "chat_type": "t2t",
+            "sub_chat_type": "t2t",
+            "edited": false,
+            "error": null,
+            "extra": {
+              "meta": {
+                "subChatType": "t2t"
+              }
+            },
+            "feature_config": {
+              "thinking_enabled": true,
+              "output_schema": "phase",
+              "instructions": null,
+              "research_mode": "advance",
+              "thinking_budget": 81920
+            },
+            "parentId": null,
+            "turn_id": null,
+            "childrenIds": [
+              "9d8a0c33-8fe1-4e26-bacc-1b939b75f179"
+            ],
+            "files": [],
+            "timestamp": 1766063549
+          },
+          "9d8a0c33-8fe1-4e26-bacc-1b939b75f179": {
+            "role": "assistant",
+            "content": "",
+            "reasoning_content": null,
+            "chat_type": "t2t",
+            "sub_chat_type": "t2t",
+            "model": "qwen3-max-2025-10-30",
+            "modelName": "Qwen3-Max",
+            "modelIdx": 0,
+            "id": "9d8a0c33-8fe1-4e26-bacc-1b939b75f179",
+            "parentId": "69d5a5cf-c7a1-48b6-916e-ad9d12f5e71d",
+            "childrenIds": [],
+            "feature_config": {
+              "thinking_enabled": true,
+              "output_schema": "phase",
+              "instructions": null,
+              "research_mode": "advance",
+              "thinking_budget": 81920
+            },
+            "content_list": [
+              {
+                "content": "The user is asking a simple math question: 1+1=? This is a basic arithmetic problem that I can answer directly without needing to use any tools. The answer is 2.\n\nSince this is a straightforward question that doesn't require any complex computation or external tools, I'll just provide the answer directly.",
+                "phase": "think",
+                "status": "finished",
+                "extra": null,
+                "role": "assistant",
+                "usage": {
+                  "input_tokens": 358,
+                  "output_tokens": 71,
+                  "total_tokens": 429,
+                  "output_tokens_details": {
+                    "reasoning_tokens": 62
+                  }
+                }
+              },
+              {
+                "content": "1+1=2",
+                "phase": "answer",
+                "status": "finished",
+                "extra": null,
+                "role": "assistant",
+                "usage": {
+                  "input_tokens": 358,
+                  "output_tokens": 72,
+                  "total_tokens": 430,
+                  "output_tokens_details": {
+                    "reasoning_tokens": 62
+                  }
+                }
+              }
+            ],
+            "is_stop": false,
+            "edited": false,
+            "error": null,
+            "meta": {},
+            "extra": {
+              "meta": {
+                "subChatType": "t2t"
+              },
+              "endTime": 1766063555.7370515
+            },
+            "feedbackId": null,
+            "turn_id": null,
+            "annotation": null,
+            "done": true,
+            "info": null,
+            "timestamp": 1766063549
+          }
+        },
+        "currentId": "9d8a0c33-8fe1-4e26-bacc-1b939b75f179",
+        "currentResponseIds": [
+          "9d8a0c33-8fe1-4e26-bacc-1b939b75f179"
+        ]
+      },
+      "models": [
+        "qwen3-max-2025-10-30"
+      ],
+      "messages": [
+        {
+          "id": "69d5a5cf-c7a1-48b6-916e-ad9d12f5e71d",
+          "role": "user",
+          "content": "1+1=?",
+          "models": [
+            "qwen3-max-2025-10-30"
+          ],
+          "chat_type": "t2t",
+          "sub_chat_type": "t2t",
+          "edited": false,
+          "error": null,
+          "extra": {
+            "meta": {
+              "subChatType": "t2t"
+            }
+          },
+          "feature_config": {
+            "thinking_enabled": true,
+            "output_schema": "phase",
+            "instructions": null,
+            "research_mode": "advance",
+            "thinking_budget": 81920
+          },
+          "parentId": null,
+          "turn_id": null,
+          "childrenIds": [
+            "9d8a0c33-8fe1-4e26-bacc-1b939b75f179"
+          ],
+          "files": [],
+          "timestamp": 1766063549
+        },
+        {
+          "role": "assistant",
+          "content": "",
+          "reasoning_content": null,
+          "chat_type": "t2t",
+          "sub_chat_type": "t2t",
+          "model": "qwen3-max-2025-10-30",
+          "modelName": "Qwen3-Max",
+          "modelIdx": 0,
+          "id": "9d8a0c33-8fe1-4e26-bacc-1b939b75f179",
+          "parentId": "69d5a5cf-c7a1-48b6-916e-ad9d12f5e71d",
+          "childrenIds": [],
+          "feature_config": {
+            "thinking_enabled": true,
+            "output_schema": "phase",
+            "instructions": null,
+            "research_mode": "advance",
+            "thinking_budget": 81920
+          },
+          "content_list": [
+            {
+              "content": "The user is asking a simple math question: 1+1=? This is a basic arithmetic problem that I can answer directly without needing to use any tools. The answer is 2.\n\nSince this is a straightforward question that doesn't require any complex computation or external tools, I'll just provide the answer directly.",
+              "phase": "think",
+              "status": "finished",
+              "extra": null,
+              "role": "assistant",
+              "usage": {
+                "input_tokens": 358,
+                "output_tokens": 71,
+                "total_tokens": 429,
+                "output_tokens_details": {
+                  "reasoning_tokens": 62
+                }
+              }
+            },
+            {
+              "content": "1+1=2",
+              "phase": "answer",
+              "status": "finished",
+              "extra": null,
+              "role": "assistant",
+              "usage": {
+                "input_tokens": 358,
+                "output_tokens": 72,
+                "total_tokens": 430,
+                "output_tokens_details": {
+                  "reasoning_tokens": 62
+                }
+              }
+            }
+          ],
+          "is_stop": false,
+          "edited": false,
+          "error": null,
+          "meta": {},
+          "extra": {
+            "meta": {
+              "subChatType": "t2t"
+            },
+            "endTime": 1766063555.7370515
+          },
+          "feedbackId": null,
+          "turn_id": null,
+          "annotation": null,
+          "done": true,
+          "info": null,
+          "timestamp": 1766063549
+        }
+      ]
+    },
+    "updated_at": 1766063555,
+    "created_at": 1766063549,
+    "share_id": null,
+    "archived": false,
+    "pinned": false,
+    "meta": {
+      "timestamp": 1766063549612,
+      "tags": [
+        "mathematics",
+        "education",
+        "science"
+      ]
+    },
+    "folder_id": null,
+    "currentResponseIds": [
+      "9d8a0c33-8fe1-4e26-bacc-1b939b75f179"
+    ],
+    "currentId": "9d8a0c33-8fe1-4e26-bacc-1b939b75f179",
+    "chat_type": "t2t",
+    "models": null,
+    "project_id": null
+  }
+  ]
+}

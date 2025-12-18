@@ -10,19 +10,22 @@ from rewind.data_process import (
     update_data,
     ai_refuse_count
 )
+from rewind.utils.providers import ProviderType
 
 
-def session_count(json_path: str) -> Dict[str, Any]:
+def session_count(json_path: str, provider_type: ProviderType = ProviderType.DEEPSEEK) \
+    -> Dict[str, Any]:
     """get session count stats from json file"""
     data = load_json(json_path)
-    data = update_data(data)
+    data = update_data(data, provider_type)
 
     return session_count_stats(data)
 
-def most_used_models(json_path: str) -> List[Dict[str, Any]]:
+def most_used_models(json_path: str, provider_type: ProviderType = ProviderType.DEEPSEEK) \
+    -> List[Dict[str, Any]]:
     """how many times each model is used"""
     data = load_json(json_path)
-    data = update_data(data)
+    data = update_data(data, provider_type)
 
     model_counts = prefer_model_count(data)
 
@@ -34,10 +37,11 @@ def most_used_models(json_path: str) -> List[Dict[str, Any]]:
     return answer_list
 
 
-def total_characters(json_path: str) -> List[Dict[str, Any]]:
+def total_characters(json_path: str, provider_type: ProviderType = ProviderType.DEEPSEEK) \
+    -> List[Dict[str, Any]]:
     """how many characters each model has generated or user has inputted"""
     data = load_json(json_path)
-    data = update_data(data)
+    data = update_data(data, provider_type)
 
     char_counts = count_chars(data)
 
@@ -50,10 +54,11 @@ def total_characters(json_path: str) -> List[Dict[str, Any]]:
     return answer_list
 
 
-def most_used_language(json_path: str) -> List[Dict[str, Any]]:
+def most_used_language(json_path: str, provider_type: ProviderType = ProviderType.DEEPSEEK) \
+    -> List[Dict[str, Any]]:
     """which language is used the most"""
     data = load_json(json_path)
-    data = update_data(data)
+    data = update_data(data, provider_type)
 
     chinese_counts, else_counts = language_dominant_count(data)
 
@@ -75,21 +80,21 @@ def most_used_language(json_path: str) -> List[Dict[str, Any]]:
 
     return answer_list
 
-def refuse_counts(json_path: str) -> int:
+def refuse_counts(json_path: str, provider_type: ProviderType = ProviderType.DEEPSEEK) -> int:
     """how many refuse responses are there"""
     data = load_json(json_path)
-    data = update_data(data)
+    data = update_data(data, provider_type)
 
     return ai_refuse_count(data)
 
 def main():
     """base api testing"""
-    data_path = "data/conversations.json"
-    print(session_count(data_path))
-    print(most_used_models(data_path))
-    print(total_characters(data_path))
-    print(most_used_language(data_path))
-    print(refuse_counts(data_path))
+    data_path = "data/qwen_conversations.json"
+    print(session_count(data_path, ProviderType.QWEN))
+    print(most_used_models(data_path, ProviderType.QWEN))
+    print(total_characters(data_path, ProviderType.QWEN))
+    print(most_used_language(data_path, ProviderType.QWEN))
+    print(refuse_counts(data_path, ProviderType.QWEN))
 
 if __name__ == "__main__":
     main()

@@ -5,6 +5,7 @@ models/
 venv/
 data/*.json
 
-!data/example.json
+!data/example_qwen.json
+!data/example_deepseek.json
 
 rewind/utils/model_based/
