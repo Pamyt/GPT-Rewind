@@ -63,6 +63,12 @@ body.theme-night { background: var(--bg-night); }
     box-sizing: border-box;
 }
 
+/* 特殊处理第二页，让模型图表更突出 */
+#page2 .card-container {
+    justify-content: flex-start; /* 内容从顶部开始排列 */
+    max-height: 900px; /* 增加最大高度以容纳更大的图表 */
+}
+
 /* 文本样式 */
 h1 { font-size: 2em; margin-bottom: 10px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 h2 { font-size: 1.4em; color: var(--accent); margin: 0 0 15px 0; border-left: 4px solid var(--accent); padding-left: 10px; }
@@ -93,7 +99,7 @@ h3 { font-size: 1.1em; margin: 15px 0 5px 0; }
     color: #999;
     cursor: pointer;
     text-decoration: underline;
-    
+
     /* --- 修改部分 --- */
     display: block;         /* 让它变成块级元素，独占一行 */
     margin: 15px auto 0;    /* 上边距15px，左右自动(居中)，下边距0 */
@@ -155,7 +161,7 @@ h3 { font-size: 1.1em; margin: 15px 0 5px 0; }
     width: 0%; /* 初始宽度为0，由JS控制变长 */
     background: linear-gradient(90deg, #667eea, #764ba2); /* 你的主题渐变色 */
     border-radius: 10px;
-    
+
     /* 核心：Apple 风格的动画曲线 */
     /* cubic-bezier(0.25, 1, 0.5, 1) 模拟 iOS 的丝滑减速效果 */
     transition: width 1.5s cubic-bezier(0.25, 1, 0.5, 1);
@@ -171,8 +177,40 @@ h3 { font-size: 1.1em; margin: 15px 0 5px 0; }
    UI 优化：第二页布局调整 (Models & Language)
    ========================================= */
 
-/* 修改 .chart-container-row 让其变身垂直布局 */
-/* 原本你是 display: flex; align-items: center; gap: 15px; */
+/* 新的模型图表主导布局 */
+.models-dominant-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+    flex: 1; /* 占据主要空间 */
+    justify-content: center;
+    min-height: 350px; /* 确保足够的高度 */
+}
+
+.models-chart-large {
+    width: 100%;
+    height: 280px; /* 大幅增加图表高度 */
+    position: relative;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1); /* 添加轻微阴影突出图表 */
+    border-radius: 12px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.7); /* 半透明白色背景 */
+}
+
+.models-text-below {
+    width: 100%;
+    text-align: center;
+    font-size: 1em;
+    line-height: 1.5;
+    padding: 0 10px;
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+/* 保留原有的 .chart-container-row 以防其他地方使用 */
 .chart-container-row {
     display: flex;
     flex-direction: column; /* 关键：改为垂直排列 */
@@ -191,6 +229,83 @@ h3 { font-size: 1.1em; margin: 15px 0 5px 0; }
     width: 100%;
     text-align: center; /* 文字居中 */
     font-size: 0.95em;
+}
+
+/* 语言图表紧凑样式 */
+.chart-box.compact {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+/* 分隔线样式 */
+hr.divider {
+    border: none;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(102, 126, 234, 0.3), transparent);
+    margin: 25px 0;
+}
+
+/* =========================================
+   UI 优化：第三页布局调整 (Time Chart)
+   ========================================= */
+
+/* 时间图表主导布局 */
+.time-dominant-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+    flex: 1; /* 占据主要空间 */
+    justify-content: center;
+    min-height: 350px; /* 确保足够的高度 */
+}
+
+.time-chart-large {
+    width: 100%;
+    height: 280px; /* 大幅增加图表高度 */
+    position: relative;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1); /* 添加轻微阴影突出图表 */
+    border-radius: 12px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.7); /* 半透明白色背景 */
+}
+
+/* 特殊处理第三页，让时间图表更突出 */
+#page3 .card-container {
+    justify-content: flex-start; /* 内容从顶部开始排列 */
+    max-height: 900px; /* 增加最大高度以容纳更大的图表 */
+}
+
+/* 时间记录样式优化 */
+.time-records {
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.time-records .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.time-records .stat-row:last-child {
+    border-bottom: none;
+}
+
+.time-records .stat-row span {
+    font-size: 0.95em;
+    color: #555;
+}
+
+.time-records .stat-row strong {
+    font-size: 1.05em;
+    color: #667eea;
+    font-weight: 600;
 }
 
 /* 让原本用于 ECharts 的容器高度自适应，因为我们要塞 HTML 进去了 */
@@ -218,11 +333,11 @@ h3 { font-size: 1.1em; margin: 15px 0 5px 0; }
     top: 50%;
     transform: translateY(-50%);
     z-index: 100;
-    
+
     /* 关键修改：设定固定尺寸 */
-    width: 40px; 
+    width: 40px;
     height: 100px; /* 40px(上箭头) + 20px(间距) + 40px(下箭头) */
-    
+
     /* 关键修改：移除 flex 布局，改用普通块级布局 */
     /* display: flex;  <-- 删除 */
     /* gap: 20px;      <-- 删除 */
@@ -234,17 +349,17 @@ h3 { font-size: 1.1em; margin: 15px 0 5px 0; }
     height: 40px;
     background: rgba(255, 255, 255, 0.3);
     border-radius: 50%;
-    
+
     /* 关键修改：改为绝对定位 */
     position: absolute;
     left: 0; /* 靠左对齐容器 */
-    
+
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
     backdrop-filter: blur(5px);
-    
+
     /* 动画保持不变 */
     animation: floatVertical 3s ease-in-out infinite;
     transition: background 0.3s;
@@ -269,7 +384,7 @@ h3 { font-size: 1.1em; margin: 15px 0 5px 0; }
 }
 
 .arrow:active {
-    animation-play-state: paused; 
+    animation-play-state: paused;
     transform: scale(0.9) translateY(0);
 }
 

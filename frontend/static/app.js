@@ -75,7 +75,7 @@ if (exportBtn) exportBtn.addEventListener('click', exportPagesAsImages);
     uploadBtn.addEventListener('click', () => {
         // 重置状态
         currentProviderType = null;
-        fileInput.value = ''; 
+        fileInput.value = '';
         // 显示弹窗
         providerModal.style.display = 'flex';
     });
@@ -92,7 +92,7 @@ if (exportBtn) exportBtn.addEventListener('click', exportPagesAsImages);
         btn.addEventListener('click', (e) => {
             // 1. 获取并保存厂商类型
             currentProviderType = e.target.dataset.type;
-            
+
             // 2. 隐藏弹窗
             providerModal.style.display = 'none';
 
@@ -123,7 +123,7 @@ if (exportBtn) exportBtn.addEventListener('click', exportPagesAsImages);
         }
 
         fileNameDisplay.textContent = `✓ ${file.name} (${currentProviderType})`;
-        
+
         // 立即开始上传
         uploadFile(file, currentProviderType);
     }
@@ -314,7 +314,7 @@ showError('分析失败: ' + error.message);
         if (charts.language && typeof charts.language.dispose === 'function') {
             charts.language.dispose();
         }
-        charts.language = null; 
+        charts.language = null;
         document.getElementById('languageChart').innerHTML = ''; // 确保清空 HTML 内容
 
         errorSection.style.display = 'none';
@@ -461,7 +461,7 @@ showError('分析失败: ' + error.message);
         }, 100);
     }
 
-    // 第二页：模型分布 (紧凑版)
+    // 第二页：模型分布 (主导版)
     function createModelsChart() {
         const modelsData = analysisData.most_used_models || [];
         const labels = modelsData.map(item => item.model.replace('deepseek-', '')); // 简化名字
@@ -477,25 +477,55 @@ showError('分析失败: ' + error.message);
                 datasets: [{
                     data: data,
                     backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b'],
-                    borderWidth: 1,
-                    hoverOffset: 4
+                    borderWidth: 2,
+                    hoverOffset: 8,
+                    borderColor: '#fff'
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false, // 【关键】
-                cutout: '60%', // 环稍微细一点
+                maintainAspectRatio: false,
+                cutout: '50%', // 环稍微粗一点，更突出
                 plugins: {
                     legend: {
-                        position: 'right', // 放在右侧节省垂直空间
+                        position: 'bottom', // 放在底部，利用水平空间
                         labels: {
-                            boxWidth: 8,
-                            font: { size: 10 },
-                            padding: 10
+                            boxWidth: 12,
+                            font: { size: 12, weight: 'bold' },
+                            padding: 15,
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        padding: 12,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return `${context.label}: ${context.parsed} (${percentage}%)`;
+                            }
                         }
                     }
                 },
-                layout: { padding: 0 }
+                layout: {
+                    padding: {
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: false,
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                }
             }
         });
     }
@@ -506,13 +536,13 @@ showError('分析失败: ' + error.message);
     function createLanguageChart() {
         const languageData = analysisData.most_used_language || [];
         const container = document.getElementById('languageChart');
-        
+
         // 1. 清空容器并初始化样式
         if (charts.language && typeof charts.language.dispose === 'function') {
             charts.language.dispose();
             charts.language = null;
         }
-        container.innerHTML = ''; 
+        container.innerHTML = '';
         container.className = 'apple-chart-container';
         container.style.height = 'auto'; // 自适应高度
 
@@ -541,12 +571,12 @@ showError('分析失败: ' + error.message);
         function renderList(type) {
             // 简单的淡出淡入效果
             listWrapper.style.opacity = '0.5';
-            
+
             setTimeout(() => {
                 listWrapper.innerHTML = ''; // 清空列表
-                
+
                 const data = type === 'code' ? codeData : naturalData;
-                
+
                 // 排序并取 Top 5
                 const sorted = data
                     .sort((a, b) => parseInt(b.counts) - parseInt(a.counts))
@@ -563,7 +593,7 @@ showError('分析失败: ' + error.message);
                 sorted.forEach((item, index) => {
                     const count = parseInt(item.counts);
                     const percent = (count / maxCount) * 100;
-                    
+
                     // 优化显示名称
                     let displayName = item.language;
                     if (type === 'natural') {
@@ -613,7 +643,7 @@ showError('分析失败: ' + error.message);
                 // UI 状态切换
                 btns.forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
-                
+
                 // 重新渲染
                 renderList(e.target.dataset.type);
             });
@@ -623,8 +653,7 @@ showError('分析失败: ' + error.message);
         renderList('code');
     }
     // 第三页：小时分布 (紧凑版)
-    // 第三页：小时分布 (修复：颜色改成深色，防止在白底上看不见)
-// 第三页：小时分布 (已开启纵轴显示)
+    // 第三页：小时分布 (主导版)
     function createHourlyChart() {
         const hourlyData = analysisData.per_hour_distribution || {};
         const hours = Object.keys(hourlyData).sort((a, b) => parseInt(a) - parseInt(b));
@@ -642,9 +671,10 @@ showError('分析失败: ' + error.message);
         const ctx = document.getElementById('hourlyChart').getContext('2d');
         if (charts.hourly) charts.hourly.destroy();
 
-        // 紫色渐变
+        // 更丰富的紫色渐变
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
         gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(0.5, '#8b5cf6');
         gradient.addColorStop(1, '#764ba2');
 
         charts.hourly = new Chart(ctx, {
@@ -655,9 +685,10 @@ showError('分析失败: ' + error.message);
                     label: '对话次数',
                     data: fullValues,
                     backgroundColor: gradient,
-                    borderRadius: 4,
-                    barPercentage: 0.6,
-                    hoverBackgroundColor: '#764ba2'
+                    borderRadius: 6,
+                    barPercentage: 0.7,
+                    hoverBackgroundColor: '#764ba2',
+                    borderWidth: 0
                 }]
             },
             options: {
@@ -670,40 +701,64 @@ showError('分析失败: ' + error.message);
                         intersect: false,
                         backgroundColor: 'rgba(0,0,0,0.8)',
                         titleColor: '#fff',
-                        bodyColor: '#fff'
+                        bodyColor: '#fff',
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            title: function(context) {
+                                return `时间: ${context[0].label}`;
+                            },
+                            label: function(context) {
+                                return `对话次数: ${context.parsed.y}`;
+                            }
+                        }
                     }
                 },
                 scales: {
                     x: {
                         grid: { display: false },
                         ticks: {
-                            color: '#888',
-                            font: { size: 9 },
+                            color: '#666',
+                            font: { size: 11, weight: '500' },
                             maxRotation: 0,
                             autoSkip: true,
-                            maxTicksLimit: 8
+                            maxTicksLimit: 12
                         }
                     },
-                    // 【修改部分】开启 Y 轴
                     y: {
-                        display: true, // 1. 改为 true 显示
+                        display: true,
                         beginAtZero: true,
-                        border: { display: false }, // 2. 隐藏左侧竖线，更美观
+                        border: { display: false },
                         grid: {
-                            color: '#f0f0f0', // 3. 设置淡淡的网格线
+                            color: 'rgba(0, 0, 0, 0.05)',
                             drawBorder: false
                         },
                         ticks: {
-                            color: '#888', // 文字颜色
-                            font: { size: 9 }, // 字号小一点
-                            maxTicksLimit: 5 // 4. 限制刻度数量，防止太密
+                            color: '#666',
+                            font: { size: 11, weight: '500' },
+                            maxTicksLimit: 6,
+                            padding: 8
                         }
                     }
                 },
-                layout: { padding: 0 },
+                layout: {
+                    padding: {
+                        top: 20,
+                        bottom: 10,
+                        left: 10,
+                        right: 10
+                    }
+                },
                 animation: {
                     duration: 1500,
-                    easing: 'easeOutQuart'
+                    easing: 'easeOutQuart',
+                    delay: (context) => {
+                        let delay = 0;
+                        if (context.type === 'data' && context.mode === 'default') {
+                            delay = context.dataIndex * 50;
+                        }
+                        return delay;
+                    }
                 }
             }
         });
@@ -1093,7 +1148,7 @@ showError('分析失败: ' + error.message);
 
                 // 5. 导出
                 const link = document.createElement('a');
-                link.download = `AI_Memory_2024_Page_${i}.png`;
+                link.download = `AI_Memory_2025_Page_${i}.png`;
                 link.href = finalCanvas.toDataURL('image/png');
                 link.click();
             }

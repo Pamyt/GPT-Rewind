@@ -69,18 +69,18 @@
         <div class="card-container">
             <h2>你的 AI 伙伴</h2>
 
-            <div class="chart-container-row">
-                <div class="chart-half">
+            <div class="models-dominant-container">
+                <div class="models-chart-large">
                     <canvas id="modelsChart"></canvas>
                 </div>
-                <div class="text-half" id="modelsCopy"></div>
+                <div class="models-text-below" id="modelsCopy"></div>
             </div>
 
             <hr class="divider">
 
             <h2>使用的语言</h2>
-            <div class="chart-box wide">
-                <div id="languageChart" style="width: 100%; height: 250px;"></div>
+            <div class="chart-box compact">
+                <div id="languageChart" style="width: 100%; height: 180px;"></div>
             </div>
             <div id="languageCopy" class="copy-text list-copy"></div>
         </div>
@@ -90,10 +90,12 @@
         <div class="card-container">
             <h2>你的时钟</h2>
 
-            <div class="chart-box">
-                <canvas id="hourlyChart"></canvas>
+            <div class="time-dominant-container">
+                <div class="time-chart-large">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+                <p id="hourlyCopy" class="highlight-text center"></p>
             </div>
-            <p id="hourlyCopy" class="highlight-text center"></p>
 
             <div class="time-records" id="timeStats">
                 </div>
