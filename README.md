@@ -1,5 +1,5 @@
 # GPT-Rewind
-A simple DeepSeek Annual Summary Tool
+A simple Chatbot Annual Summary Tool
 
 [中文版](README_ZH.md) | English
 
@@ -17,6 +17,7 @@ A comprehensive chat history analysis tool for AI conversations, providing insig
 - **Export Functionality**: Save your annual summary as an image
 
 ## Change Log
+- Support Qwen model on 2025/12/19 🎉
 - Support Windows platform on 2025/12/13 🎉 Thanks for bug report from [@zengly22](https://github.com/zengly22)
 
 ## Installation
@@ -48,12 +49,33 @@ bash ./start_frontend.sh
 
 ## Usage
 
+### For DeepSeek Users
+
 1. **Download your chat history** from the DeepSeek website:
    - Go to your DeepSeek account settings
    - Find the data export option
    - Download your conversation history as a JSON file
 
 ![Download Chat History](assets/usage/deepseek.png)
+
+2. **Upload your chat history**:
+   - Click the "Upload JSON Record" button
+   - Select your downloaded JSON file
+   - Wait for the analysis to complete
+
+3. **Explore your insights**:
+   - Navigate through different pages using the arrow keys or on-screen buttons
+   - View your annual overview, AI partners, time patterns, and interaction styles
+   - Export your summary as an image using the "Save Annual Memory" button
+
+### For Qwen Users
+
+1. **Download your chat history** from the Qwen website:
+   - Go to your Qwen account settings
+   - Find the data export option
+   - Download your conversation history as a JSON file
+
+![Download Chat History](assets/usage/qwen.png)
 
 2. **Upload your chat history**:
    - Click the "Upload JSON Record" button
