@@ -5,5 +5,5 @@ class ProviderType(enum.Enum):
     """Different model provider"""
     OPENAI = "openai"
     DEEPSEEK = "deepseek"
-    ANTHROPIC = "anthropic"
+    CLAUDE = "claude"
     QWEN = "qwen"

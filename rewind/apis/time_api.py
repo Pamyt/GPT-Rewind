@@ -55,10 +55,10 @@ def per_hour_distribution(json_path: str, provider_type: ProviderType = Provider
 
 def main():
     """main function"""
-    data_path = "data/qwen_conversations.json"
-    print(chat_days(data_path, provider_type= ProviderType.QWEN))
-    print(time_limit(data_path, provider_type= ProviderType.QWEN))
-    print(per_hour_distribution(data_path, provider_type= ProviderType.QWEN))
+    data_path = "data/claude_conversations.json"
+    print(chat_days(data_path, provider_type= ProviderType.CLAUDE))
+    print(time_limit(data_path, provider_type= ProviderType.CLAUDE))
+    print(per_hour_distribution(data_path, provider_type= ProviderType.CLAUDE))
 
 
 if __name__ == "__main__":

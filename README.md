@@ -17,6 +17,7 @@ A comprehensive chat history analysis tool for AI conversations, providing insig
 - **Export Functionality**: Save your annual summary as an image
 
 ## Change Log
+- Support Claude model on 2025/12/20 🎉
 - Support Qwen model on 2025/12/19 🎉
 - Support Windows platform on 2025/12/13 🎉 Thanks for bug report from [@zengly22](https://github.com/zengly22)
 
@@ -76,6 +77,25 @@ bash ./start_frontend.sh
    - Download your conversation history as a JSON file
 
 ![Download Chat History](assets/usage/qwen.png)
+
+2. **Upload your chat history**:
+   - Click the "Upload JSON Record" button
+   - Select your downloaded JSON file
+   - Wait for the analysis to complete
+
+3. **Explore your insights**:
+   - Navigate through different pages using the arrow keys or on-screen buttons
+   - View your annual overview, AI partners, time patterns, and interaction styles
+   - Export your summary as an image using the "Save Annual Memory" button
+
+### For Claude Users
+
+1. **Download your chat history** from the Claude website:
+   - Go to your Claude account settings
+   - Find the data export option
+   - Download your conversation history as a JSON file
+
+![Download Chat History](assets/usage/claude.png)
 
 2. **Upload your chat history**:
    - Click the "Upload JSON Record" button
