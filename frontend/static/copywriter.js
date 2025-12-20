@@ -119,7 +119,7 @@ const CopyWriter = {
                 "相比于快问快答，你更享受<b>思维链</b>（CoT）展开时的那种美感。",
                 "你是<b>深度思考者</b>，喜欢看着 AI 一步步剥开真理的洋葱。",
                 "你追求的不是答案，而是<b>推导的过程</b>，Reasoner 是你的最佳拍档。",
-                "在快节奏的时代，你选择慢下来，和 <b>Reasoner</b> 一起长考。"
+                "在快节奏的时代，你选择慢下来，和 <b>Reasoner</b> 一起思考。"
             ]);
         } else if (topModel.includes('chat') || topModel.includes('gpt-4') || topModel.includes('v3')) {
             return this._pick([
@@ -148,7 +148,7 @@ getCodeCopy: function(data) {
         // 针对你的数据特征定制 (Bash, Python, Verilog)
         if (topLangs.includes('bash') || topLangs.includes('shell') || topLangs.includes('cmd')) {
             lines.push(this._pick([
-                "🐚 <b>Bash/Shell</b> 霸榜：你是命令行的掌控者，喜欢用脚本自动化一切。",
+                "<b>Bash/Shell</b> 霸榜：你是命令行的掌控者，喜欢用脚本自动化一切。",
                 "在终端的黑底白字间，你用 Shell 编织着系统运转的脉络。",
                 "与其点鼠标，不如写脚本。你的效率建立在自动化的基石上。"
             ]));
@@ -156,7 +156,7 @@ getCodeCopy: function(data) {
 
         if (topLangs.includes('verilog') || topLangs.includes('systemverilog')) {
             lines.push(this._pick([
-                "🔌 <b>Verilog/SystemVerilog</b>：你的代码不仅仅是逻辑，更是实实在在的电路。",
+                "<b>Verilog/SystemVerilog</b>：你的代码不仅仅是逻辑，更是实实在在的电路。",
                 "在 0 和 1 的底层世界，你正在定义硬件的灵魂。",
                 "别人写的是软件，你写的是芯片的律动。"
             ]));
@@ -164,7 +164,7 @@ getCodeCopy: function(data) {
 
         if (topLangs.includes('python')) {
             lines.push(this._pick([
-                "🐍 <b>Python</b> 是你的万能胶，连接数据、AI 与现实业务。",
+                "<b>Python</b> 是你的万能胶，连接数据、AI 与现实业务。",
                 "人生苦短，你用 Python 解决复杂问题。",
                 "从数据分析到自动化，Python 也是你手中的瑞士军刀。"
             ]));
@@ -172,22 +172,22 @@ getCodeCopy: function(data) {
 
         if (topLangs.includes('cpp') || topLangs.includes('c')) {
             lines.push(this._pick([
-                "⚡ <b>C/C++</b>：硬核！你追求极致的性能和对内存的掌控。",
+                "<b>C/C++</b>：硬核！你追求极致的性能和对内存的掌控。",
                 "在指针的迷宫中游刃有余，你是底层的构建者。"
             ]));
         }
 
         if (topLangs.includes('javascript') || topLangs.includes('typescript') || topLangs.includes('tsx')) {
-            lines.push("🌐 前端技术栈点亮了你的交互界面，用户体验至上。");
+            lines.push("前端技术栈点亮了你的交互界面，用户体验至上。");
         }
 
         if (topLangs.includes('dockerfile') || topLangs.includes('yaml')) {
-            lines.push("🐳 <b>Docker/YAML</b>：云原生时代的建筑师，你构建的不仅是代码，是环境。");
+            lines.push("<b>Docker/YAML</b>：云原生时代的建筑师，你构建的不仅是代码，是环境。");
         }
 
         // 兜底文案
         if (lines.length === 0) {
-            lines.push("💻 你的技术栈独树一帜，无论用什么语言，逻辑才是你最强的武器。");
+            lines.push("你的技术栈独树一帜，无论用什么语言，逻辑才是你最强的武器。");
         }
 
         // 随机取 1-2 条，或者按优先级显示
@@ -209,19 +209,19 @@ getCodeCopy: function(data) {
 
         if (cnCount > enCount * 2) {
             lines.push(this._pick([
-                "📝 <b>中文</b>是你的主要思考载体，逻辑严密，表达清晰。",
+                "<b>中文</b>是你的主要思考载体，逻辑严密，表达清晰。",
                 "你习惯用母语探究真理，方块字里藏着大智慧。",
                 "在中文语境下，你的提问直击要害。"
             ]));
         } else if (enCount > cnCount * 2) {
             lines.push(this._pick([
-                "🌍 <b>English First</b>：你习惯查阅一手资料，与世界前沿技术同步。",
+                "<b>English First</b>：你习惯查阅一手资料，与世界前沿技术同步。",
                 "代码与英语无缝切换，你的知识边界没有国界。",
                 "用英语思考技术，看来你在啃很多硬核文档。"
             ]));
         } else {
             lines.push(this._pick([
-                "🔀 <b>中英双语</b>随意切换，你的思维在两种文化间自由跳跃。",
+                "<b>中英双语</b>随意切换，你的思维在两种文化间自由跳跃。",
                 "中文负责深度思考，英文负责广度探索，完美平衡。",
                 "双语加持，让你的视野比别人更宽广。"
             ]));
