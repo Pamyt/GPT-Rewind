@@ -311,11 +311,20 @@ showError('分析失败: ' + error.message);
         if (charts.models) charts.models.destroy();
         if (charts.daily) charts.daily.destroy();
         if (charts.hourly) charts.hourly.destroy();
+        charts.models = null; 
+
         if (charts.language && typeof charts.language.dispose === 'function') {
             charts.language.dispose();
         }
         charts.language = null;
-        document.getElementById('languageChart').innerHTML = ''; // 确保清空 HTML 内容
+        document.getElementById('languageChart').innerHTML = '';
+
+        // 【新增】尝试恢复 Page 2 的原始结构 (可选，但推荐)
+        // 这样下次上传文件时，createModelsChart 面对的是一个干净的或者原始的容器
+        const p2Container = document.querySelector('#page2 .chart-container-row');
+        if (p2Container) {
+             p2Container.innerHTML = ''; // 清空即可，下次 createModelsChart 会重建
+        }
 
         errorSection.style.display = 'none';
         showPage(0); // 回到上传页
@@ -461,75 +470,98 @@ showError('分析失败: ' + error.message);
         }, 100);
     }
 
-    // 第二页：模型分布 (主导版)
+    // 第二页：模型分布 (紧凑版)
+  // 第二页：模型分布 (横向堆叠条形图版)
+  // 第二页：模型分布 (GitHub 风格 HTML 复刻版)
+// 第二页：模型分布 (GitHub 风格 - 适配现有 HTML)
+// 第二页：模型分布 (GitHub 风格 - 主题配色版)
     function createModelsChart() {
         const modelsData = analysisData.most_used_models || [];
-        const labels = modelsData.map(item => item.model.replace('deepseek-', '')); // 简化名字
-        const data = modelsData.map(item => parseInt(item.usage || 0));
+        
+        // 1. 排序
+        modelsData.sort((a, b) => parseInt(b.usage) - parseInt(a.usage));
 
-        const ctx = document.getElementById('modelsChart').getContext('2d');
-        if (charts.models) charts.models.destroy();
+        // 2. 【关键修改】配色盘：换回了与你 style.css 里的渐变色一致的色系
+        // 主要是紫、蓝、粉、青、绿，保持通透感
+        const colors = [
+            '#667eea', // 主题紫 (Primary)
+            '#4facfe', // 亮空蓝 (Blue)
+            '#f093fb', // 糖果粉 (Pink)
+            '#43e97b', // 薄荷绿 (Green)
+            '#fa709a', // 珊瑚红 (Red-ish)
+            '#a18cd1', // 薰衣草 (Light Purple)
+            '#ffcc33', // 暖阳黄 (Yellow)
+            '#00c6fb'  // 青色 (Cyan)
+        ];
 
-        charts.models = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b'],
-                    borderWidth: 2,
-                    hoverOffset: 8,
-                    borderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '50%', // 环稍微粗一点，更突出
-                plugins: {
-                    legend: {
-                        position: 'bottom', // 放在底部，利用水平空间
-                        labels: {
-                            boxWidth: 12,
-                            font: { size: 12, weight: 'bold' },
-                            padding: 15,
-                            usePointStyle: true,
-                            pointStyle: 'circle'
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0,0,0,0.8)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        padding: 12,
-                        displayColors: true,
-                        callbacks: {
-                            label: function(context) {
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = ((context.parsed / total) * 100).toFixed(1);
-                                return `${context.label}: ${context.parsed} (${percentage}%)`;
-                            }
-                        }
-                    }
-                },
-                layout: {
-                    padding: {
-                        top: 10,
-                        bottom: 10,
-                        left: 10,
-                        right: 10
-                    }
-                },
-                animation: {
-                    animateRotate: true,
-                    animateScale: false,
-                    duration: 1000,
-                    easing: 'easeOutQuart'
-                }
+        const totalUsage = modelsData.reduce((sum, item) => sum + parseInt(item.usage), 0);
+
+        // 3. 获取容器
+        const container = document.querySelector('#page2 .chart-container-row');
+        if (!container) return;
+
+        // 4. 重置容器样式
+        container.style.display = 'block'; 
+        container.style.height = 'auto';
+        container.innerHTML = ''; 
+
+        // 5. 创建进度条 (The Bar)
+        const progressBar = document.createElement('div');
+        progressBar.className = 'github-progress-bar';
+        
+        // 【微调】为了让进度条本身更融入背景，可以给轨道一个半透明背景，而不是生硬的灰色
+        progressBar.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
+
+        // 6. 创建图例区域 (The Legend)
+        const legendContainer = document.createElement('div');
+        legendContainer.className = 'github-legend-container';
+
+        // 7. 生成数据 DOM
+        modelsData.forEach((item, index) => {
+            const usage = parseInt(item.usage);
+            const percent = ((usage / totalUsage) * 100);
+            const displayPercent = percent.toFixed(1) + '%';
+            const simpleName = item.model.replace('deepseek-', '').replace('gpt-', '').replace('claude-', '');
+            const color = colors[index % colors.length];
+
+            if (percent > 0) {
+                const segment = document.createElement('div');
+                segment.className = 'github-bar-segment';
+                segment.style.backgroundColor = color;
+                // 【微调】给每个分段加一点点阴影，让它看起来像浮在空中
+                // segment.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)'; 
+                segment.style.width = '0%'; 
+                segment.dataset.width = percent + '%';
+                progressBar.appendChild(segment);
             }
-        });
-    }
 
+            const legendItem = document.createElement('div');
+            legendItem.className = 'github-legend-item';
+            legendItem.innerHTML = `
+                <div class="github-legend-dot" style="background-color: ${color}"></div>
+                <span style="color: #444; font-weight: 500;">${simpleName}</span>
+                <span class="github-legend-percent">${displayPercent}</span>
+            `;
+            legendContainer.appendChild(legendItem);
+        });
+
+        const copyBox = document.createElement('div');
+        copyBox.id = 'modelsCopy';
+        copyBox.className = 'models-text-reset';
+        
+        container.appendChild(progressBar);
+        container.appendChild(legendContainer);
+        container.appendChild(copyBox);
+
+        setTimeout(() => {
+            const segments = progressBar.querySelectorAll('.github-bar-segment');
+            segments.forEach(seg => {
+                seg.style.width = seg.dataset.width;
+            });
+        }, 100);
+
+        generateModelsCopy();
+    }
     // 第二页：语言分布 (ECharts 紧凑版)
    // 第二页：语言分布 (Apple 风格 HTML版)
   // 第二页：语言分布 (带切换功能的 Apple 风格版)
@@ -653,8 +685,9 @@ showError('分析失败: ' + error.message);
         renderList('code');
     }
     // 第三页：小时分布 (紧凑版)
-    // 第三页：小时分布 (主导版)
-    function createHourlyChart() {
+    // 第三页：小时分布 (修复：颜色改成深色，防止在白底上看不见)
+// 第三页：小时分布 (已开启纵轴显示)
+     function createHourlyChart() {
         const hourlyData = analysisData.per_hour_distribution || {};
         const hours = Object.keys(hourlyData).sort((a, b) => parseInt(a) - parseInt(b));
         const values = hours.map(h => hourlyData[h]);
@@ -672,8 +705,10 @@ showError('分析失败: ' + error.message);
         if (charts.hourly) charts.hourly.destroy();
 
         // 更丰富的紫色渐变
+        // 更丰富的紫色渐变
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
         gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(0.5, '#8b5cf6');
         gradient.addColorStop(0.5, '#8b5cf6');
         gradient.addColorStop(1, '#764ba2');
 
@@ -685,6 +720,10 @@ showError('分析失败: ' + error.message);
                     label: '对话次数',
                     data: fullValues,
                     backgroundColor: gradient,
+                    borderRadius: 6,
+                    barPercentage: 0.7,
+                    hoverBackgroundColor: '#764ba2',
+                    borderWidth: 0,
                     borderRadius: 6,
                     barPercentage: 0.7,
                     hoverBackgroundColor: '#764ba2',
@@ -711,6 +750,17 @@ showError('分析失败: ' + error.message);
                             label: function(context) {
                                 return `对话次数: ${context.parsed.y}`;
                             }
+                        },
+                        bodyColor: '#fff',
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            title: function(context) {
+                                return `时间: ${context[0].label}`;
+                            },
+                            label: function(context) {
+                                return `对话次数: ${context.parsed.y}`;
+                            }
                         }
                     }
                 },
@@ -720,20 +770,30 @@ showError('分析失败: ' + error.message);
                         ticks: {
                             color: '#666',
                             font: { size: 11, weight: '500' },
+                            color: '#666',
+                            font: { size: 11, weight: '500' },
                             maxRotation: 0,
                             autoSkip: true,
+                            maxTicksLimit: 12,
                             maxTicksLimit: 12
                         }
                     },
                     y: {
                         display: true,
+                        display: true,
                         beginAtZero: true,
                         border: { display: false },
+                        border: { display: false },
                         grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
                             color: 'rgba(0, 0, 0, 0.05)',
                             drawBorder: false
                         },
                         ticks: {
+                            color: '#666',
+                            font: { size: 11, weight: '500' },
+                            maxTicksLimit: 6,
+                            padding: 8,
                             color: '#666',
                             font: { size: 11, weight: '500' },
                             maxTicksLimit: 6,
@@ -749,8 +809,24 @@ showError('分析失败: ' + error.message);
                         right: 10
                     }
                 },
+                layout: {
+                    padding: {
+                        top: 20,
+                        bottom: 10,
+                        left: 10,
+                        right: 10
+                    }
+                },
                 animation: {
                     duration: 1500,
+                    easing: 'easeOutQuart',
+                    delay: (context) => {
+                        let delay = 0;
+                        if (context.type === 'data' && context.mode === 'default') {
+                            delay = context.dataIndex * 50;
+                        }
+                        return delay;
+                    },
                     easing: 'easeOutQuart',
                     delay: (context) => {
                         let delay = 0;
@@ -1037,16 +1113,14 @@ showError('分析失败: ' + error.message);
         else if (total > 0) box.textContent = '适度使用表情，恰到好处地为文字增色。';
         else box.textContent = '冷静克制，你更习惯用纯粹的文字传递思想。';
     }
-
-    // ==========================================
-    // 8. 导出功能 (核心修改)
-    // ==========================================
-
-    // ==========================================
-    // 8. 导出功能 (核心修改：修复背景模糊问题)
+// ==========================================
+    // 8. 导出功能 (终极修复：尺寸统一 + 进度条暴力渲染)
     // ==========================================
 // ==========================================
-    // 8. 导出功能 (终极修正版：合成法)
+    // 8. 导出功能 (终极修复：显示语言条 + 紧凑高度)
+    // ==========================================
+// ==========================================
+    // 8. 导出功能 (完美修复：统一高度 + 颜色保留)
     // ==========================================
 
     async function exportPagesAsImages() {
@@ -1055,62 +1129,142 @@ showError('分析失败: ' + error.message);
             return;
         }
 
-        const navArrows = document.querySelector('.nav-arrows');
         const actionArea = document.querySelector('.action-area');
-
-        // 1. 隐藏干扰元素
-        if (navArrows) navArrows.style.display = 'none';
+        const navArrows = document.querySelector('.nav-arrows');
+        
+        // 1. 临时隐藏 UI
         if (actionArea) actionArea.style.visibility = 'hidden';
+        if (navArrows) navArrows.style.display = 'none';
+
+        // 2. 准备离屏容器
+        let offScreenContainer = document.getElementById('exportContainer');
+        if (!offScreenContainer) {
+            offScreenContainer = document.createElement('div');
+            offScreenContainer.id = 'exportContainer';
+            document.body.appendChild(offScreenContainer);
+        }
+        offScreenContainer.innerHTML = '';
 
         const exportPageIndices = [1, 2, 3, 4];
 
         try {
             for (let i of exportPageIndices) {
-                // 切换到该页
-                showPage(i);
+                const originalPage = document.getElementById(`page${i}`);
+                const originalCard = originalPage.querySelector('.card-container');
+                if (!originalCard) continue;
 
-                // 等待图表和DOM稳定
-                await new Promise(resolve => setTimeout(resolve, 600));
+                // --- A. 克隆与布局环境搭建 ---
+                const clonedCard = originalCard.cloneNode(true);
+                
+                const wrapper = document.createElement('div');
+                wrapper.style.position = 'absolute';
+                wrapper.style.top = '0';
+                wrapper.style.left = '0';
+                wrapper.style.width = '420px'; // 模拟手机宽度
+                wrapper.style.padding = '20px';
+                wrapper.style.display = 'flex';
+                wrapper.style.justifyContent = 'center';
+                wrapper.appendChild(clonedCard);
+                offScreenContainer.appendChild(wrapper);
 
-                // 获取当前页面的卡片容器
-                const currentPageEl = document.getElementById(`page${i}`);
-                const cardEl = currentPageEl.querySelector('.card-container');
+                // --- B. 样式冻结与统一 ---
+                
+                clonedCard.classList.add('no-animation');
+                
+                // 1. 【修复高度不一】设定统一的最小高度，保证所有卡片看起来一样高
+                clonedCard.style.height = 'auto'; 
+                clonedCard.style.minHeight = '480px'; // 设定一个标准高度
+                clonedCard.style.maxHeight = 'none'; 
+                clonedCard.style.overflow = 'visible';
+                
+                // 使用 Flex 布局让内容垂直分布，避免 Page 3 下方出现大片死板的空白
+                clonedCard.style.display = 'flex';
+                clonedCard.style.flexDirection = 'column';
+                clonedCard.style.justifyContent = 'space-between'; // 关键：内容分散对齐
+                
+                clonedCard.style.width = '100%'; 
+                clonedCard.style.background = '#ffffff';
+                clonedCard.style.boxShadow = 'none';
+                clonedCard.style.margin = '0';
 
-                if (!cardEl) continue;
-
-                // --- 核心修改：手动合成背景和卡片 ---
-
-                // 1. 捕捉卡片 (强制白底，确保清晰)
-                // 临时设置卡片样式以保证截图清晰
-                const originalBg = cardEl.style.background;
-                const originalShadow = cardEl.style.boxShadow;
-                cardEl.style.background = '#ffffff'; // 强制纯白
-                cardEl.style.boxShadow = 'none';     // 暂时移除阴影，稍后画上去或忽略
-
-                // 截取卡片
-                const cardCanvas = await html2canvas(cardEl, {
-                    scale: 2,
-                    useCORS: true,
-                    backgroundColor: '#ffffff' // 确保卡片背景不透明
+                // 2. 【修复 Page 2 语言条消失】
+                const appleGroups = clonedCard.querySelectorAll('.apple-bar-group');
+                appleGroups.forEach(group => {
+                    group.style.opacity = '1';
+                    group.style.animation = 'none';
                 });
 
-                // 恢复卡片原样
-                cardEl.style.background = originalBg;
-                cardEl.style.boxShadow = originalShadow;
+                // 3. 修复 Apple Track
+                const appleTracks = clonedCard.querySelectorAll('.apple-track');
+                appleTracks.forEach(track => {
+                    track.style.width = '100%';
+                    track.style.display = 'block';
+                    track.style.height = '10px';
+                    track.style.background = 'rgba(0,0,0,0.06)';
+                });
 
-                // 2. 创建最终画布 (模拟手机屏幕尺寸)
+                // 4. 【修复 Page 2 条形图无颜色】
+                const progressBars = clonedCard.querySelectorAll('.github-bar-segment, .apple-fill');
+                progressBars.forEach(bar => {
+                    const finalWidth = bar.getAttribute('data-width');
+                    // 【关键】先获取原本的背景色（GitHub 条形图是内联样式的颜色）
+                    const originalColor = bar.style.backgroundColor;
+
+                    if (finalWidth) {
+                        // 重新写回样式时，显式带上 background-color
+                        bar.style.cssText = `
+                            width: ${finalWidth} !important;
+                            background-color: ${originalColor} !important; 
+                            transition: none !important;
+                            animation: none !important;
+                            display: block !important;
+                            height: 100% !important;
+                        `;
+                        
+                        // Apple Bar 特殊处理（它是渐变色）
+                        if (bar.classList.contains('apple-fill')) {
+                            bar.style.background = 'linear-gradient(90deg, #667eea, #764ba2)';
+                            bar.style.borderRadius = '10px';
+                        }
+                    }
+                });
+
+                // 5. 修复 Canvas 内容
+                const originalCanvases = originalCard.querySelectorAll('canvas');
+                const clonedCanvases = clonedCard.querySelectorAll('canvas');
+                originalCanvases.forEach((orig, index) => {
+                    if (clonedCanvases[index]) {
+                        const dest = clonedCanvases[index];
+                        dest.width = orig.width;
+                        dest.height = orig.height;
+                        dest.style.width = '100%';
+                        dest.style.height = orig.style.height || 'auto';
+                        const ctx = dest.getContext('2d');
+                        ctx.drawImage(orig, 0, 0);
+                    }
+                });
+
+                // --- C. 截图 ---
+                void clonedCard.offsetWidth;
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                const cardCanvas = await html2canvas(clonedCard, {
+                    scale: 3, 
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    logging: false
+                });
+
+                // --- D. 合成背景 ---
                 const finalCanvas = document.createElement('canvas');
-                const width = 1080;  // 设定高分辨率宽
-                const height = 1920; // 设定高分辨率高
+                const width = 1080;
+                const height = 1920;
                 finalCanvas.width = width;
                 finalCanvas.height = height;
                 const ctx = finalCanvas.getContext('2d');
 
-                // 3. 绘制渐变背景 (直接画在 canvas 上，不依赖 DOM 截图)
-                // 获取当前 body 的背景样式，或者直接使用预设的漂亮渐变
-                // 这里我们手动创建一个对应当前时间的完美渐变
+                // 绘制背景
                 const gradient = ctx.createLinearGradient(0, 0, width, height);
-                // 默认使用清新蓝绿渐变 (Day Theme)，你也可以根据 body 类名判断
                 if (document.body.classList.contains('theme-night')) {
                     gradient.addColorStop(0, '#30cfd0');
                     gradient.addColorStop(1, '#330867');
@@ -1121,47 +1275,44 @@ showError('分析失败: ' + error.message);
                     gradient.addColorStop(0, '#a18cd1');
                     gradient.addColorStop(1, '#fbc2eb');
                 } else {
-                    // Default / Day
                     gradient.addColorStop(0, '#84fab0');
                     gradient.addColorStop(1, '#8fd3f4');
                 }
-
                 ctx.fillStyle = gradient;
                 ctx.fillRect(0, 0, width, height);
 
-                // 4. 将截好的卡片画到正中间
-                // 计算卡片在画布中的尺寸（保持比例）
+                // 绘制卡片 (垂直居中)
                 const cardAspect = cardCanvas.width / cardCanvas.height;
-                const drawWidth = width * 0.85; // 卡片占宽度的 85%
+                const drawWidth = width * 0.85; 
                 const drawHeight = drawWidth / cardAspect;
                 const drawX = (width - drawWidth) / 2;
                 const drawY = (height - drawHeight) / 2;
 
-                // 4.1 (可选) 手动画一个简单的阴影
                 ctx.save();
-                ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
-                ctx.shadowBlur = 40;
-                ctx.shadowOffsetY = 20;
-                // 绘制卡片
+                ctx.shadowColor = "rgba(0, 0, 0, 0.25)";
+                ctx.shadowBlur = 60;
+                ctx.shadowOffsetY = 30;
                 ctx.drawImage(cardCanvas, drawX, drawY, drawWidth, drawHeight);
                 ctx.restore();
 
-                // 5. 导出
+                // --- E. 下载 ---
                 const link = document.createElement('a');
+                link.download = `AI_Memory_2025_Page_${i}.png`;
                 link.download = `AI_Memory_2025_Page_${i}.png`;
                 link.href = finalCanvas.toDataURL('image/png');
                 link.click();
+                
+                offScreenContainer.innerHTML = '';
             }
         } catch (err) {
             console.error('导出失败:', err);
             alert('导出遇到问题，请重试');
         } finally {
-            if (navArrows) navArrows.style.display = 'flex';
             if (actionArea) actionArea.style.visibility = 'visible';
-
-            setTimeout(() => {
-                 alert('✅ 导出完成！画面已修复清晰。');
-            }, 500);
+            if (navArrows) navArrows.style.display = 'flex';
+            if (offScreenContainer) offScreenContainer.innerHTML = '';
+            
+            alert('导出完成！');
         }
     }
 });

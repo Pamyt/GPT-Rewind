@@ -59,7 +59,7 @@ body.theme-night { background: var(--bg-night); }
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     display: flex;
     flex-direction: column;
-    overflow-y: auto; /* 内容过多可内部滚动 */
+    overflow-y: hidden; /* 内容过多可内部滚动 */
     box-sizing: border-box;
 }
 
@@ -226,7 +226,6 @@ h3 { font-size: 1.1em; margin: 15px 0 5px 0; }
 }
 
 .text-half {
-    width: 100%;
     text-align: center; /* 文字居中 */
     font-size: 0.95em;
 }
@@ -242,7 +241,7 @@ hr.divider {
     border: none;
     height: 1px;
     background: linear-gradient(to right, transparent, rgba(102, 126, 234, 0.3), transparent);
-    margin: 25px 0;
+    margin: 10px 0;
 }
 
 /* =========================================
@@ -611,4 +610,187 @@ body.export-mode .card-container {
 .lang-list-wrapper {
     min-height: 180px; /* 防止切换时高度跳动 */
     transition: opacity 0.2s ease;
+}
+/* =========================================
+   改版：横向条形图样式 (Page 2)
+   ========================================= */
+
+/* 容器：不需要那么高了，改为自适应或较小的高度 */
+/* =========================================
+   复刻 GitHub 风格进度条 (Models Chart)
+   ========================================= */
+
+/* 1. 外层容器：自适应高度 */
+.models-chart-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* 进度条和图例之间的距离 */
+    padding: 0 5px; /* 防止边缘太贴 */
+}
+/* =========================================
+   复刻 GitHub 风格进度条 (适配旧 HTML 结构)
+   ========================================= */
+
+/* 1. 进度条轨道 */
+.github-progress-bar {
+    display: flex;
+    width: 100%;
+    height: 10px; /* 细长条 */
+    background-color: #eee;
+    border-radius: 6px; /* 整体圆角 */
+    overflow: hidden;   /* 裁切内部 */
+    margin-bottom: 15px; /* 与图例的距离 */
+}
+
+/* 2. 进度条分段 */
+.github-bar-segment {
+    height: 100%;
+    border-right: 2px solid #fff; /* 核心：白色微空隙 */
+    box-sizing: content-box;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.github-bar-segment:last-child {
+    border-right: none;
+}
+
+/* 3. 图例容器 */
+.github-legend-container {
+    display: flex;
+    flex-wrap: wrap; /* 允许换行 */
+    gap: 10px 20px;  /* 行距 10px，列距 20px */
+    justify-content: flex-start;
+    margin-bottom: 15px; /* 与下方文案的距离 */
+}
+
+/* 4. 图例单项 */
+.github-legend-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.9em;
+    color: #555;
+    font-weight: 500;
+}
+
+/* 5. 图例圆点 (GitHub 风格小圆点) */
+.github-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+/* 6. 百分比文字 */
+.github-legend-percent {
+    color: #999;
+    margin-left: 6px;
+    font-size: 0.9em;
+    font-weight: normal;
+}
+
+/* 7. 适配重置后的文案框样式 */
+.models-text-reset {
+    width: 100%;
+    text-align: center;
+    font-size: 0.95em;
+    color: #666;
+    background: rgba(102, 126, 234, 0.05);
+    padding: 10px;
+    border-radius: 8px;
+    line-height: 1.5;
+}
+.models-text-below {
+    text-align: center;
+    font-size: 1em;
+    line-height: 1.5;
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 8px;
+    padding: 10px;
+}
+/* 时间图表主导布局 */
+.time-dominant-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+    flex: 1; /* 占据主要空间 */
+    justify-content: center;
+}
+
+.time-chart-large {
+    width: 100%;
+    height: 200px; /* 大幅增加图表高度 */
+    position: relative;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1); /* 添加轻微阴影突出图表 */
+    border-radius: 12px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.7); /* 半透明白色背景 */
+    animation: fadeSlideIn 0.5s forwards; /* 进场动画 */
+}
+
+/* 特殊处理第三页，让时间图表更突出 */
+#page3 .card-container {
+    justify-content: flex-start; /* 内容从顶部开始排列 */
+    max-height: 900px; /* 增加最大高度以容纳更大的图表 */
+}
+
+/* 时间记录样式优化 */
+.time-records {
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.time-records .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.time-records .stat-row:last-child {
+    border-bottom: none;
+}
+
+.time-records .stat-row span {
+    font-size: 0.95em;
+    color: #555;
+}
+
+.time-records .stat-row strong {
+    font-size: 1.05em;
+    color: #667eea;
+    font-weight: 600;
+}
+/* =========================================
+   导出辅助样式
+   ========================================= */
+
+/* 强制关闭动画和过渡，防止截图时截到中间状态 */
+/* =========================================
+   导出辅助样式 (修正版)
+   ========================================= */
+
+/* 1. 强制关闭动画 */
+.no-animation, .no-animation * {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important; /* 防止浮动动画干扰 */
+}
+
+/* 2. 离屏渲染容器 */
+#exportContainer {
+    position: fixed;
+    top: 0;
+    left: -9999px;
+    /* 【关键修改】给一个足够大的固定宽度，防止内部百分比宽度的元素塌陷 */
+    width: 1080px; 
+    height: 1920px;
+    z-index: -1;
+    background: #fff; /* 确保背景不透明 */
+    pointer-events: none;
 }
