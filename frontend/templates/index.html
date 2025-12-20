@@ -76,7 +76,6 @@
                 <div class="text-half" id="modelsCopy"></div>
             </div>
 
-            <hr class="divider">
 
             <h2>使用的语言</h2>
             <div class="chart-box wide">
@@ -90,13 +89,12 @@
         <div class="card-container">
             <h2>你的时钟</h2>
 
-                   <div class="time-dominant-container">
+                        <div class="time-dominant-container">
                 <div class="time-chart-large">
                     <canvas id="hourlyChart"></canvas>
                 </div>
                 <p id="hourlyCopy" class="highlight-text center"></p>
             </div>
-
 
             <div class="time-records" id="timeStats">
                 </div>
@@ -162,7 +160,7 @@
         <button id="cancelProviderBtn" class="btn-link" style="margin-top: 15px; font-size: 0.9em;">取消</button>
     </div>
 </div>
+<script src="{{ url_for('static', filename='copywriter.js') }}"></script>
    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
-            

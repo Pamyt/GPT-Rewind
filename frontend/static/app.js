@@ -75,7 +75,7 @@ if (exportBtn) exportBtn.addEventListener('click', exportPagesAsImages);
     uploadBtn.addEventListener('click', () => {
         // 重置状态
         currentProviderType = null;
-        fileInput.value = '';
+        fileInput.value = ''; 
         // 显示弹窗
         providerModal.style.display = 'flex';
     });
@@ -92,7 +92,7 @@ if (exportBtn) exportBtn.addEventListener('click', exportPagesAsImages);
         btn.addEventListener('click', (e) => {
             // 1. 获取并保存厂商类型
             currentProviderType = e.target.dataset.type;
-
+            
             // 2. 隐藏弹窗
             providerModal.style.display = 'none';
 
@@ -123,7 +123,7 @@ if (exportBtn) exportBtn.addEventListener('click', exportPagesAsImages);
         }
 
         fileNameDisplay.textContent = `✓ ${file.name} (${currentProviderType})`;
-
+        
         // 立即开始上传
         uploadFile(file, currentProviderType);
     }
@@ -195,7 +195,6 @@ showError('分析失败: ' + error.message);
         createModelsChart();
         createLanguageChart();
         generateModelsCopy();
-        generateLanguageCopy();
 
         // --- 第三页填充 ---
         createHourlyChart();
@@ -474,16 +473,14 @@ showError('分析失败: ' + error.message);
   // 第二页：模型分布 (横向堆叠条形图版)
   // 第二页：模型分布 (GitHub 风格 HTML 复刻版)
 // 第二页：模型分布 (GitHub 风格 - 适配现有 HTML)
-// 第二页：模型分布 (GitHub 风格 - 主题配色版)
     function createModelsChart() {
         const modelsData = analysisData.most_used_models || [];
         
         // 1. 排序
         modelsData.sort((a, b) => parseInt(b.usage) - parseInt(a.usage));
 
-        // 2. 【关键修改】配色盘：换回了与你 style.css 里的渐变色一致的色系
-        // 主要是紫、蓝、粉、青、绿，保持通透感
-        const colors = [
+        // 2. GitHub 风格色盘
+       const colors = [
             '#667eea', // 主题紫 (Primary)
             '#4facfe', // 亮空蓝 (Blue)
             '#f093fb', // 糖果粉 (Pink)
@@ -496,21 +493,20 @@ showError('分析失败: ' + error.message);
 
         const totalUsage = modelsData.reduce((sum, item) => sum + parseInt(item.usage), 0);
 
-        // 3. 获取容器
+        // 3. 【关键修正】获取你 HTML 中实际存在的容器
+        // 你的 HTML 结构是 <div class="chart-container-row">
         const container = document.querySelector('#page2 .chart-container-row');
-        if (!container) return;
+        
+        if (!container) return; // 安全检查
 
-        // 4. 重置容器样式
+        // 4. 重置容器样式 (覆盖原来的 Flex 左右布局，改为上下堆叠)
         container.style.display = 'block'; 
         container.style.height = 'auto';
-        container.innerHTML = ''; 
+        container.innerHTML = ''; // 清空原本的 Canvas 和 text-half
 
         // 5. 创建进度条 (The Bar)
         const progressBar = document.createElement('div');
         progressBar.className = 'github-progress-bar';
-        
-        // 【微调】为了让进度条本身更融入背景，可以给轨道一个半透明背景，而不是生硬的灰色
-        progressBar.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
 
         // 6. 创建图例区域 (The Legend)
         const legendContainer = document.createElement('div');
@@ -524,35 +520,40 @@ showError('分析失败: ' + error.message);
             const simpleName = item.model.replace('deepseek-', '').replace('gpt-', '').replace('claude-', '');
             const color = colors[index % colors.length];
 
+            // 只有大于 0 的才显示在进度条里
             if (percent > 0) {
                 const segment = document.createElement('div');
                 segment.className = 'github-bar-segment';
                 segment.style.backgroundColor = color;
-                // 【微调】给每个分段加一点点阴影，让它看起来像浮在空中
-                // segment.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)'; 
-                segment.style.width = '0%'; 
+                segment.style.width = '0%'; // 初始 0，用于动画
                 segment.dataset.width = percent + '%';
                 progressBar.appendChild(segment);
             }
 
+            // 图例全部显示
             const legendItem = document.createElement('div');
             legendItem.className = 'github-legend-item';
             legendItem.innerHTML = `
                 <div class="github-legend-dot" style="background-color: ${color}"></div>
-                <span style="color: #444; font-weight: 500;">${simpleName}</span>
+                <span>${simpleName}</span>
                 <span class="github-legend-percent">${displayPercent}</span>
             `;
             legendContainer.appendChild(legendItem);
         });
 
+        // 8. 重建文案区域 (因为原有的被 innerHTML='' 删掉了)
         const copyBox = document.createElement('div');
-        copyBox.id = 'modelsCopy';
-        copyBox.className = 'models-text-reset';
+        copyBox.id = 'modelsCopy'; // 恢复 ID，供 generateModelsCopy 使用
+        copyBox.className = 'models-text-below'; 
         
+        // 【新增】因为现在是 block 布局，手动加一点上边距，让它离图例远一点，呼吸感更好
+        copyBox.style.marginTop = '20px';
+        // 9. 组装 DOM
         container.appendChild(progressBar);
         container.appendChild(legendContainer);
         container.appendChild(copyBox);
 
+        // 10. 触发动画
         setTimeout(() => {
             const segments = progressBar.querySelectorAll('.github-bar-segment');
             segments.forEach(seg => {
@@ -560,30 +561,36 @@ showError('分析失败: ' + error.message);
             });
         }, 100);
 
+        // 11. 重新生成文案 (必须在 copyBox 被添加到 DOM 后调用)
         generateModelsCopy();
     }
-    // 第二页：语言分布 (ECharts 紧凑版)
-   // 第二页：语言分布 (Apple 风格 HTML版)
-  // 第二页：语言分布 (带切换功能的 Apple 风格版)
+   // ==========================================
+    // 第二页：语言分布 (带切换功能 + 静态文案)
+    // ==========================================
     function createLanguageChart() {
         const languageData = analysisData.most_used_language || [];
         const container = document.getElementById('languageChart');
-
-        // 1. 清空容器并初始化样式
+        const copyBox = document.getElementById('languageCopy'); 
+        
+        // 1. 清空容器
         if (charts.language && typeof charts.language.dispose === 'function') {
             charts.language.dispose();
             charts.language = null;
         }
-        container.innerHTML = '';
+        container.innerHTML = ''; 
         container.className = 'apple-chart-container';
-        container.style.height = 'auto'; // 自适应高度
+        container.style.height = 'auto';
 
         // 2. 数据分类
-        // 注意：数据中的 counts 可能是字符串或数字，统一转为 Int
         const codeData = languageData.filter(d => d.type === 'code');
         const naturalData = languageData.filter(d => d.type === 'natural');
 
-        // 3. 创建切换按钮 UI (Segmented Control)
+        // 3. 【核心修改】预先生成文案，确保本次查看期间文案不会变
+        // 这样无论怎么切换，显示的都是同一段话
+        const staticCodeCopy = CopyWriter.getCodeCopy(codeData);
+        const staticNaturalCopy = CopyWriter.getNaturalCopy(naturalData);
+
+        // 4. 创建切换按钮 UI
         const toggleWrapper = document.createElement('div');
         toggleWrapper.className = 'lang-toggle-wrapper';
         toggleWrapper.innerHTML = `
@@ -594,25 +601,35 @@ showError('分析失败: ' + error.message);
         `;
         container.appendChild(toggleWrapper);
 
-        // 4. 创建列表容器
+        // 5. 创建列表容器
         const listWrapper = document.createElement('div');
         listWrapper.className = 'lang-list-wrapper';
         container.appendChild(listWrapper);
 
-        // 5. 核心渲染函数
+        // 6. 核心渲染函数
         function renderList(type) {
-            // 简单的淡出淡入效果
+            // 列表淡出
             listWrapper.style.opacity = '0.5';
-
+            copyBox.style.opacity = '0.5'; 
+            
             setTimeout(() => {
                 listWrapper.innerHTML = ''; // 清空列表
-
+                
+                // A. 决定使用哪组数据
                 const data = type === 'code' ? codeData : naturalData;
+                
+                // B. 【核心修改】使用预先生成的静态文案
+                if (type === 'code') {
+                    copyBox.innerHTML = staticCodeCopy;
+                } else {
+                    copyBox.innerHTML = staticNaturalCopy;
+                }
+                copyBox.style.opacity = '1'; 
 
-                // 排序并取 Top 5
+                // C. 渲染图表条目
                 const sorted = data
                     .sort((a, b) => parseInt(b.counts) - parseInt(a.counts))
-                    .slice(0, 4);
+                    .slice(0, 4); 
 
                 if (sorted.length === 0) {
                     listWrapper.innerHTML = '<div style="text-align:center;color:#999;padding:30px;">暂无数据</div>';
@@ -625,23 +642,20 @@ showError('分析失败: ' + error.message);
                 sorted.forEach((item, index) => {
                     const count = parseInt(item.counts);
                     const percent = (count / maxCount) * 100;
-
-                    // 优化显示名称
+                    
                     let displayName = item.language;
-                    if (type === 'natural') {
-                        if (displayName === 'chinese') displayName = '中文';
-                        else if (displayName === 'english') displayName = 'English';
-                        else if (displayName === 'else') displayName = '通用/其他';
-                    }
+                    if (displayName === 'else') displayName = 'English / Other';
+                    if (displayName === 'chinese') displayName = '中文';
+                    if (displayName === 'cpp') displayName = 'C++';
+                    if (displayName === 'c') displayName = 'C';
 
-                    // 创建条目结构
                     const group = document.createElement('div');
                     group.className = 'apple-bar-group';
-                    // 级联延迟动画，每次切换都重新播放
+                    // 动画
                     group.style.animation = 'none';
-                    group.offsetHeight; /* 触发重绘 */
+                    group.offsetHeight; 
                     group.style.animation = `fadeSlideIn 0.5s forwards ${index * 0.05}s`;
-                    group.style.opacity = '0'; // 初始隐藏
+                    group.style.opacity = '0';
 
                     group.innerHTML = `
                         <div class="apple-bar-header">
@@ -655,7 +669,7 @@ showError('分析失败: ' + error.message);
                     listWrapper.appendChild(group);
                 });
 
-                // 恢复透明度
+                // 恢复列表透明度
                 listWrapper.style.opacity = '1';
 
                 // 触发进度条动画
@@ -665,28 +679,22 @@ showError('分析失败: ' + error.message);
                         bar.style.width = bar.getAttribute('data-width');
                     });
                 });
-            }, 150); // 短暂延迟以产生切换感
+            }, 150);
         }
 
-        // 6. 绑定点击事件
+        // 7. 绑定点击事件
         const btns = toggleWrapper.querySelectorAll('.lang-btn');
         btns.forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // UI 状态切换
                 btns.forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
-
-                // 重新渲染
                 renderList(e.target.dataset.type);
             });
         });
 
-        // 7. 初始渲染 (默认显示代码)
+        // 8. 初始渲染
         renderList('code');
     }
-    // 第三页：小时分布 (紧凑版)
-    // 第三页：小时分布 (修复：颜色改成深色，防止在白底上看不见)
-// 第三页：小时分布 (已开启纵轴显示)
      function createHourlyChart() {
         const hourlyData = analysisData.per_hour_distribution || {};
         const hours = Object.keys(hourlyData).sort((a, b) => parseInt(a) - parseInt(b));
@@ -705,10 +713,8 @@ showError('分析失败: ' + error.message);
         if (charts.hourly) charts.hourly.destroy();
 
         // 更丰富的紫色渐变
-        // 更丰富的紫色渐变
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
         gradient.addColorStop(0, '#667eea');
-        gradient.addColorStop(0.5, '#8b5cf6');
         gradient.addColorStop(0.5, '#8b5cf6');
         gradient.addColorStop(1, '#764ba2');
 
@@ -720,10 +726,6 @@ showError('分析失败: ' + error.message);
                     label: '对话次数',
                     data: fullValues,
                     backgroundColor: gradient,
-                    borderRadius: 6,
-                    barPercentage: 0.7,
-                    hoverBackgroundColor: '#764ba2',
-                    borderWidth: 0,
                     borderRadius: 6,
                     barPercentage: 0.7,
                     hoverBackgroundColor: '#764ba2',
@@ -750,17 +752,6 @@ showError('分析失败: ' + error.message);
                             label: function(context) {
                                 return `对话次数: ${context.parsed.y}`;
                             }
-                        },
-                        bodyColor: '#fff',
-                        padding: 12,
-                        displayColors: false,
-                        callbacks: {
-                            title: function(context) {
-                                return `时间: ${context[0].label}`;
-                            },
-                            label: function(context) {
-                                return `对话次数: ${context.parsed.y}`;
-                            }
                         }
                     }
                 },
@@ -770,30 +761,20 @@ showError('分析失败: ' + error.message);
                         ticks: {
                             color: '#666',
                             font: { size: 11, weight: '500' },
-                            color: '#666',
-                            font: { size: 11, weight: '500' },
                             maxRotation: 0,
                             autoSkip: true,
-                            maxTicksLimit: 12,
                             maxTicksLimit: 12
                         }
                     },
                     y: {
                         display: true,
-                        display: true,
                         beginAtZero: true,
                         border: { display: false },
-                        border: { display: false },
                         grid: {
-                            color: 'rgba(0, 0, 0, 0.05)',
                             color: 'rgba(0, 0, 0, 0.05)',
                             drawBorder: false
                         },
                         ticks: {
-                            color: '#666',
-                            font: { size: 11, weight: '500' },
-                            maxTicksLimit: 6,
-                            padding: 8,
                             color: '#666',
                             font: { size: 11, weight: '500' },
                             maxTicksLimit: 6,
@@ -809,24 +790,8 @@ showError('分析失败: ' + error.message);
                         right: 10
                     }
                 },
-                layout: {
-                    padding: {
-                        top: 20,
-                        bottom: 10,
-                        left: 10,
-                        right: 10
-                    }
-                },
                 animation: {
                     duration: 1500,
-                    easing: 'easeOutQuart',
-                    delay: (context) => {
-                        let delay = 0;
-                        if (context.type === 'data' && context.mode === 'default') {
-                            delay = context.dataIndex * 50;
-                        }
-                        return delay;
-                    },
                     easing: 'easeOutQuart',
                     delay: (context) => {
                         let delay = 0;
@@ -885,139 +850,6 @@ showError('分析失败: ' + error.message);
         if (aiEl) aiEl.textContent = formatNumber(aiTotal);
     }
 
-    // ==========================================
-    // 修改函数 2: generateCharactersCopy
-    // ==========================================
-    function generateCharactersCopy() {
-        // 重新计算总数用于文案对比
-        const totalCharsData = analysisData.total_characters || [];
-        let grandTotal = 0;
-        let aiTotal = 0;
-        let userTotal = 0;
-
-        totalCharsData.forEach(item => {
-            const count = parseInt(item.counts || 0);
-            grandTotal += count;
-            if (item.model_type.endsWith('_REQUEST')) {
-                userTotal += count;
-            } else {
-                aiTotal += count;
-            }
-        });
-
-        const box = document.getElementById('charactersCopy');
-
-        // 计算倍率 (AI 写了多少字 / 用户写了多少字)
-        const ratio = userTotal > 0 ? (aiTotal / userTotal).toFixed(1) : 0;
-
-        // 依然保留之前的哈利波特/电影对比，因为总产出依然很壮观
-        const hpWords = 1100000;
-        const novels = (grandTotal / hpWords).toFixed(2);
-
-        const templates = [
-            `这一年，你每敲下 1 个字，AI 就会回馈给你 ${ratio} 个字的灵感。`,
-            `你们一共创造了 ${formatNumber(grandTotal)} 字符，相当于合写了 ${novels} 本《哈利波特》。`,
-            `你的 ${formatNumber(userTotal)} 字提问，撬动了 AI ${formatNumber(aiTotal)} 字的庞大思考。`
-        ];
-
-        box.textContent = pickOne(templates);
-    }
-
-    function generateMonthCopy() {
-        const chatDaysData = analysisData.chat_days || [];
-        if (!chatDaysData.length) return;
-
-        const monthCounts = {};
-        chatDaysData.forEach(({ date, counts }) => {
-            const m = new Date(date).getMonth() + 1;
-            monthCounts[m] = (monthCounts[m] || 0) + parseInt(counts || 0);
-        });
-
-        // 找到最活跃的月份
-        const topMonth = Object.keys(monthCounts).sort((a, b) => monthCounts[b] - monthCounts[a])[0];
-
-        const templates = {
-            1: ['新年伊始，和 AI 的互动就已拉满！', '一月的新计划，AI 是你的贴身参谋。'],
-            2: ['二月虽短，但你和 AI 的灵感很长。', '开春之际，学习热情率先点燃。'],
-            3: ['三月万物复苏，你的思维也在疯狂生长。', '不仅春暖花开，你的效率也在发芽。'],
-            4: ['四月人间天，你和 AI 的配合似神仙。', '论文与方案，AI 是你最温柔的辅助。'],
-            5: ['五月有劳动节，你确实在与 AI 辛勤协作。', '假期可以休，但求知欲从不打烊。'],
-            6: ['六月期末冲刺，AI 陪你一起打怪升级。', '把“DDL”打成“Done”，这波配合满分。'],
-            7: ['七月流火，你的思考热度也不减半分。', '盛夏除了空调，AI 是你最好的冷静剂。'],
-            8: ['八月积蓄力量，AI 充实了你的技能库。', '为了下半年的爆发，你在这个月默默耕耘。'],
-            9: ['九月新起点，AI 是你的全能导航员。', '金秋收获季，知识也在这一刻结果。'],
-            10: ['十月长假归来，新灵感和 AI 一起落地。', '国庆之后，你和 AI 的默契更上一层楼。'],
-            11: ['十一月不只购物，还在给大脑疯狂“进货”。', '年末前的冲刺，每一步都算数。'],
-            12: ['十二月完美收官，AI 见证了你一年的成长。', '年终复盘，AI 是你最忠实的记录者。']
-        };
-        const text = pickOne(templates[topMonth] || ['这一年，你和 AI 的默契刚刚好。']);
-        document.getElementById('monthCopy').innerHTML = `<span style="color:#667eea;font-size:1.2em">${topMonth}月</span> <br> ${text}`;
-    }
-
-
-    function generateSessionsCopy() {
-        const count = analysisData.session_count?.session_count || 0;
-        let templates = [];
-        if (count > 300) {
-            templates = ['近乎“日更”的高频交流，AI 已经是你的生活必需品。', '比点外卖还勤快，这一年你真的很努力。'];
-        } else if (count > 100) {
-            templates = ['每一次对话都是一次灵感捕捉，你做到了上百次。', '频繁却不盲目，你掌握了驾驭 AI 的最佳节奏。'];
-        } else {
-            templates = ['不常闲聊，但次次切中要害。', '你把 AI 当作精确的工具，用在了刀刃上。'];
-        }
-        document.getElementById('sessionsCopy').textContent = pickOne(templates);
-    }
-
-    // 第二页内容
-    function generateModelsCopy() {
-        const models = analysisData.most_used_models || [];
-        const topModel = models.length > 0 ? models[0].model : '';
-        const box = document.getElementById('modelsCopy');
-
-        let text = '';
-        if (topModel.includes('reasoner')) {
-            text = '你偏爱深思熟虑，<br><b>Reasoner</b> 的逻辑链与你产生共鸣。';
-        } else if (topModel.includes('chat') || topModel.includes('gpt')) {
-            text = '你喜欢高效直接，<br><b>Chat</b> 模式是你解决问题的快刀。';
-        } else {
-            text = '你的工具箱很丰富，<br>每一种模型都在关键时刻出手。';
-        }
-        box.innerHTML = text;
-    }
-
-    function generateLanguageCopy() {
-        const data = analysisData.most_used_language || [];
-        const box = document.getElementById('languageCopy');
-        let lines = [];
-
-        // 简易判断
-        const hasPython = data.some(d => d.language.toLowerCase().includes('python'));
-        const hasCpp = data.some(d => d.language.toLowerCase().includes('cpp') || d.language.toLowerCase().includes('c++'));
-        const hasEnglish = data.some(d => d.language.toLowerCase().includes('english'));
-
-        if (hasPython) lines.push('🐍 Python 让灵感自动化，你的代码很有灵性。');
-        if (hasCpp) lines.push('⚡ C++ 展现了硬核一面，追求极致性能。');
-        if (hasEnglish) lines.push('🌍 英语交流无障碍，你的知识边界在世界范围延伸。');
-        if (lines.length === 0) lines.push('📝 中文逻辑严密，你把复杂问题阐述得清清楚楚。');
-
-        box.innerHTML = lines.slice(0, 2).map(l => `<div>${l}</div>`).join('');
-    }
-
-    // 第三页内容
-    function generateHourlyCopy() {
-        const hourly = analysisData.per_hour_distribution || {};
-        const maxHour = Object.keys(hourly).reduce((a, b) => hourly[b] > (hourly[a] || 0) ? b : a, '12');
-        const h = parseInt(maxHour);
-
-        let text = '';
-        if (h >= 0 && h < 6) text = '深夜依旧清醒，星星和 AI 见过你最努力的样子。';
-        else if (h < 12) text = '一日之计在于晨，清晨是你灵感爆发的高光时刻。';
-        else if (h < 18) text = '午后时光，你和 AI 的配合稳中有进，效率拉满。';
-        else text = '夜幕降临，思维反而更加活跃，这是属于你的沉浸时刻。';
-
-        document.getElementById('hourlyCopy').textContent = text;
-    }
-
     function createTimeStats() {
         const timeData = analysisData.time_limit || [];
         let earliest = null, latest = null;
@@ -1044,13 +876,98 @@ showError('分析失败: ' + error.message);
                 </div>`;
         }
     }
+    // ==========================================
+    // 7. 文案生成逻辑 (重构版：调用 CopyWriter)
+    // ==========================================
 
-    function generateTimeCopy() {
-        const box = document.getElementById('timeCopy');
-        box.textContent = '时间记录着思考的轨迹，每一分钟都没有被辜负。';
+    // 辅助函数 pickOne 可以删掉了，CopyWriter 内部有了
+
+    function formatNumber(num) {
+        return CopyWriter.formatNumber(num);
     }
 
-    // 第四页内容
+    // 第一页：字数文案
+    function generateCharactersCopy() {
+        const totalCharsData = analysisData.total_characters || [];
+        let grandTotal = 0;
+        let aiTotal = 0;
+        let userTotal = 0;
+
+        totalCharsData.forEach(item => {
+            const count = parseInt(item.counts || 0);
+            grandTotal += count;
+            if (item.model_type.endsWith('_REQUEST')) {
+                userTotal += count;
+            } else {
+                aiTotal += count;
+            }
+        });
+
+        // 调用 CopyWriter
+        const text = CopyWriter.getCharactersCopy(userTotal, aiTotal);
+        document.getElementById('charactersCopy').textContent = text;
+    }
+
+    // 第一页：月份文案
+    function generateMonthCopy() {
+        const chatDaysData = analysisData.chat_days || [];
+        if (!chatDaysData.length) return;
+
+        const monthCounts = {};
+        chatDaysData.forEach(({ date, counts }) => {
+            const m = new Date(date).getMonth() + 1;
+            monthCounts[m] = (monthCounts[m] || 0) + parseInt(counts || 0);
+        });
+
+        const topMonth = Object.keys(monthCounts).sort((a, b) => monthCounts[b] - monthCounts[a])[0];
+        
+        // 调用 CopyWriter
+        const html = CopyWriter.getMonthCopy(topMonth, monthCounts[topMonth]);
+        document.getElementById('monthCopy').innerHTML = html;
+    }
+
+    // 第一页：会话文案
+    function generateSessionsCopy() {
+        const count = analysisData.session_count?.session_count || 0;
+        // 调用 CopyWriter
+        const text = CopyWriter.getSessionsCopy(count);
+        document.getElementById('sessionsCopy').textContent = text;
+    }
+
+    // 第二页：模型文案
+    function generateModelsCopy() {
+        const models = analysisData.most_used_models || [];
+        const topModel = models.length > 0 ? models[0].model : '';
+        // 调用 CopyWriter
+        const html = CopyWriter.getModelsCopy(topModel);
+        document.getElementById('modelsCopy').innerHTML = html;
+    }
+
+    // 第二页：语言文案
+
+
+    // 第三页：小时文案
+    function generateHourlyCopy() {
+        const hourly = analysisData.per_hour_distribution || {};
+        // 调用 CopyWriter
+        const text = CopyWriter.getHourlyCopy(hourly);
+        document.getElementById('hourlyCopy').textContent = text;
+    }
+
+    // 第三页：时间统计 (保持不变，只是格式化时间)
+    function generateTimeCopy() {
+        const box = document.getElementById('timeCopy');
+        // 这里也可以加随机文案，例如
+        const texts = [
+            '时间记录着思考的轨迹，每一分钟都没有被辜负。',
+            '这些时刻，是你与未来对话的证据。',
+            '跨越昼夜的记录，见证了求知的渴望。'
+        ];
+        // 简单随机一个
+        box.textContent = texts[Math.floor(Math.random() * texts.length)];
+    }
+
+    // 第四页：礼貌文案
     function generatePolitenessSummary() {
         const list = analysisData.polite_extent || [];
         const politeWords = ['您', '请', '谢谢', '麻烦'];
@@ -1064,32 +981,31 @@ showError('分析失败: ' + error.message);
 
         document.getElementById('politeness').textContent = pCount;
 
-        const box = document.getElementById('politenessSummary');
         const total = pCount + iCount;
         const ratio = total ? (pCount / total) : 1;
 
-        let text = '';
-        if (ratio > 0.8) text = '礼貌指数爆表！你把 AI 当作值得尊重的伙伴，AI 也一定很喜欢为你服务。';
-        else if (ratio > 0.5) text = '直率又真实，你与 AI 的交流高效且不拘小节。';
-        else text = '有点“刚”哦，不过 AI 理解你的急切，下次试试多点温柔？';
-
-        box.textContent = text;
+        // 调用 CopyWriter
+        const text = CopyWriter.getPolitenessCopy(ratio);
+        document.getElementById('politenessSummary').textContent = text;
     }
 
+    // 第四页：拒绝文案
     function generateRefuseCopy() {
         const count = analysisData.refuse_counts || 0;
         document.getElementById('refuseCount').textContent = count;
-
-        const box = document.getElementById('refuseCopy');
-        let text = '';
-        if (count > 50) text = '你试图跟 AI 聊些“不能说的秘密”，嘿嘿，它守口如瓶。';
-        else if (count > 10) text = '偶尔触碰边界，这是你探索欲的体现。';
-        else if (count === 0) text = '100% 回复率！看来 AI 从未对你“冷暴力”。';
-        else text = '沟通顺畅，大多数时候你们都在同一个频道上。';
-
-        box.textContent = text;
+        // 调用 CopyWriter
+        const text = CopyWriter.getRefuseCopy(count);
+        document.getElementById('refuseCopy').textContent = text;
     }
 
+    // 第四页：Emoji 文案
+    function generateEmojiCopy() {
+        const emojis = analysisData.emoji_counts || [];
+        const total = emojis.reduce((s, i) => s + parseInt(i.counts), 0);
+        // 调用 CopyWriter
+        const text = CopyWriter.getEmojiCopy(total);
+        document.getElementById('emojiCopy').textContent = text;
+    }
     function createEmojiList() {
         const emojis = analysisData.emoji_counts || [];
         const container = document.getElementById('emojiList');
@@ -1297,7 +1213,6 @@ showError('分析失败: ' + error.message);
 
                 // --- E. 下载 ---
                 const link = document.createElement('a');
-                link.download = `AI_Memory_2025_Page_${i}.png`;
                 link.download = `AI_Memory_2025_Page_${i}.png`;
                 link.href = finalCanvas.toDataURL('image/png');
                 link.click();
