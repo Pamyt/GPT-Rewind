@@ -17,6 +17,7 @@ A comprehensive chat history analysis tool for AI conversations, providing insig
 - **Export Functionality**: Save your annual summary as an image
 
 ## Change Log
+- Fix bug in quick start on 2025/12/20 🐛 Thanks for bug report from [@Su-Zi-Zhan](https://github.com/Su-Zi-Zhan)
 - Support Claude model on 2025/12/20 🎉
 - Support Qwen model on 2025/12/19 🎉
 - Support Windows platform on 2025/12/13 🎉 Thanks for bug report from [@zengly22](https://github.com/zengly22)
@@ -32,7 +33,7 @@ A comprehensive chat history analysis tool for AI conversations, providing insig
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/GPT-Rewind.git
+git clone git@github.com:Pamyt/GPT-Rewind.git
 cd GPT-Rewind
 ```
 

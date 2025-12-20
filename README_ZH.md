@@ -17,6 +17,7 @@
 - **导出功能**：将您的年度总结保存为图片
 
 ## 更新日志
+- 2025/12/20 修复快速开始中的错误 🐛 感谢 [@Su-Zi-Zhan](https://github.com/Su-Zi-Zhan)
 - 2025/12/19 支持 Claude 模型 🎉
 - 2025/12/19 支持 Qwen 模型 🎉
 - 2025/12/13 支持 Windows 平台 🎉 感谢 [@zengly22](https://github.com/zengly22) 的错误报告
@@ -32,7 +33,7 @@
 
 1. 克隆此仓库：
 ```bash
-git clone https://github.com/yourusername/GPT-Rewind.git
+git clone git@github.com:Pamyt/GPT-Rewind.git
 cd GPT-Rewind
 ```
 
