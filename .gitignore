@@ -9,3 +9,8 @@ data/*.json
 !data/example_deepseek.json
 
 rewind/utils/model_based/
+
+.rewind_cache/
+.rewind_cache/*
+.rewind_cache/.*
+.trae/

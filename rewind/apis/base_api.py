@@ -11,6 +11,9 @@ from rewind.data_process import (
     ai_refuse_count
 )
 from rewind.utils.providers import ProviderType
+from rewind.utils.cache_utils import get_cache_manager
+
+cache_manager = get_cache_manager()
 
 
 def session_count(json_path: str, provider_type: ProviderType = ProviderType.DEEPSEEK) \
@@ -57,26 +60,37 @@ def total_characters(json_path: str, provider_type: ProviderType = ProviderType.
 def most_used_language(json_path: str, provider_type: ProviderType = ProviderType.DEEPSEEK) \
     -> List[Dict[str, Any]]:
     """which language is used the most"""
+    # Try to get from cache
+    cached_result = cache_manager.get(json_path, f"most_used_language_{provider_type.value}")
+    if cached_result is not None:
+        return cached_result
+
     data = load_json(json_path)
     data = update_data(data, provider_type)
 
-    chinese_counts, else_counts = language_dominant_count(data)
+    natural_language_stats, _ = language_dominant_count(data)
 
     answer_list = []
 
-    for key, count in chinese_counts.items():
-        if count > 0:
-            answer_list.append({"model_type": key, "counts": count,\
-                "type": "natural", "language": "chinese"})
-    for key, count in else_counts.items():
-        if count > 0:
-            answer_list.append({"model_type": key, "counts": count, \
-                "type": "natural", "language": "else"})
+    # Process natural languages
+    # natural_language_stats structure: {"Model_Type": {"en": 10, "zh-cn": 5}}
+    for model_type_key, lang_counts in natural_language_stats.items():
+        for lang_code, count in lang_counts.items():
+            if count > 0:
+                answer_list.append({
+                    "model_type": model_type_key,
+                    "counts": count,
+                    "type": "natural",
+                    "language": lang_code
+                })
 
     code_counts = code_language_count(data)
     for key, count in code_counts.items():
         answer_list.append({"model_type": "all", "counts": count, \
             "type": "code", "language": key})
+
+    # Save to cache
+    cache_manager.set(json_path, f"most_used_language_{provider_type.value}", answer_list)
 
     return answer_list
 

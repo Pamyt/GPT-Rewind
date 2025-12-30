@@ -1,32 +1,90 @@
+/* =========================================
+   GPT-Rewind - Refined Tech Design
+   Minimalist, Sophisticated, Purposeful
+   ========================================= */
+
 :root {
-    --bg-morning: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
-    --bg-day: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
-    --bg-dusk: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    --bg-night: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
-    --card-bg: rgba(255, 255, 255, 0.92);
-    --text-main: #333;
-    --text-sub: #666;
-    --accent: #667eea;
+    /* Refined Gradient Backgrounds - Subtle, Professional */
+    --bg-morning: linear-gradient(160deg, #e8eef5 0%, #d6e4f0 50%, #c5d8eb 100%);
+    --bg-day: linear-gradient(160deg, #e8f4f8 0%, #d4edf2 50%, #c0e6eb 100%);
+    --bg-dusk: linear-gradient(160deg, #f5e8e8 0%, #f0d6d6 50%, #ebc5c5 100%);
+    --bg-night: linear-gradient(160deg, #1a1d23 0%, #15171c 50%, #101113 100%);
+
+    /* Card - Clean, Minimalist */
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --card-bg-dark: rgba(28, 30, 36, 0.95);
+    --card-border: rgba(0, 0, 0, 0.06);
+    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04),
+                    0 8px 30px rgba(0, 0, 0, 0.06);
+
+    /* Typography - Clean, Professional */
+    --text-primary: #1a1d23;
+    --text-secondary: #6b7280;
+    --text-muted: #9ca3af;
+    --text-on-dark: #e8eaed;
+
+    /* Accent - Subtle, Refined */
+    --accent-primary: #2563eb;
+    --accent-secondary: #4f46e5;
+    --accent-muted: rgba(37, 99, 235, 0.08);
+
+    /* UI Elements */
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+
+    /* Grid Pattern */
+    --grid-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Dark Theme */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-morning: linear-gradient(160deg, #1e2129 0%, #1a1d23 50%, #16191f 100%);
+        --bg-day: linear-gradient(160deg, #1e2228 0%, #1a1d23 50%, #16191e 100%);
+        --bg-dusk: linear-gradient(160deg, #291e1e 0%, #231a1a 50%, #1f1616 100%);
+        --bg-night: linear-gradient(160deg, #0d0f12 0%, #0a0c0e 50%, #07080a 100%);
+        --card-bg: var(--card-bg-dark);
+        --card-border: rgba(255, 255, 255, 0.06);
+        --text-primary: var(--text-on-dark);
+        --text-secondary: #a0a4a8;
+        --text-muted: #707478;
+        --grid-color: rgba(255, 255, 255, 0.02);
+    }
+}
+
+/* =========================================
+   Base Styles
+   ========================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body, html {
-    margin: 0;
-    padding: 0;
     height: 100%;
     width: 100%;
-    overflow: hidden; /* 禁止滚动，模拟整页切换 */
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: var(--text-main);
-    transition: background 1s ease;
+    overflow: hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--text-primary);
+    transition: background 0.8s ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* 动态背景主题 */
+/* Dynamic Background Themes */
 body.theme-morning { background: var(--bg-morning); }
 body.theme-day { background: var(--bg-day); }
 body.theme-dusk { background: var(--bg-dusk); }
 body.theme-night { background: var(--bg-night); }
 
-/* 页面通用布局 */
+/* =========================================
+   Page Layout
+   ========================================= */
+
 .page {
     position: absolute;
     top: 0;
@@ -34,314 +92,323 @@ body.theme-night { background: var(--bg-night); }
     width: 100%;
     height: 100%;
     padding: 20px;
-    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    animation: fadeIn 0.6s ease-out;
+    animation: pageFadeIn 0.5s ease-out;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes pageFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-/* 卡片容器：模仿手机屏幕内容的白色卡片 */
+/* =========================================
+   Card Design
+   ========================================= */
+
 .card-container {
     background: var(--card-bg);
     width: 100%;
-    max-width: 400px; /* 限制最大宽度，模仿手机竖屏 */
+    max-width: 400px;
     height: 90%;
     max-height: 800px;
-    border-radius: 20px;
-    padding: 25px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    border-radius: var(--radius-xl);
+    padding: 28px 24px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--card-border);
     display: flex;
     flex-direction: column;
-    overflow-y: hidden; /* 内容过多可内部滚动 */
-    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
 }
 
-/* 文本样式 */
-h1 { font-size: 2em; margin-bottom: 10px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-h2 { font-size: 1.4em; color: var(--accent); margin: 0 0 15px 0; border-left: 4px solid var(--accent); padding-left: 10px; }
-h3 { font-size: 1.1em; margin: 15px 0 5px 0; }
-.subtitle { color: rgba(255,255,255,0.9); margin-bottom: 30px; }
+/* Subtle top accent line */
+.card-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 20px;
+    right: 20px;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--accent-primary) 50%,
+        transparent 100%);
+    opacity: 0.3;
+}
 
-.big-stat { font-size: 3em; font-weight: 800; color: var(--accent); line-height: 1; margin: 10px 0; }
-.big-stat small { font-size: 0.3em; color: var(--text-sub); font-weight: normal; margin-left: 5px; }
+/* Custom Scrollbar */
+.card-container::-webkit-scrollbar {
+    width: 3px;
+}
 
-.copy-text { font-size: 0.9em; color: var(--text-sub); line-height: 1.6; margin-top: 5px; }
-.highlight-text { font-size: 1em; font-weight: bold; color: #444; background: rgba(102, 126, 234, 0.1); padding: 10px; border-radius: 8px; }
+.card-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.card-container::-webkit-scrollbar-thumb {
+    background: var(--accent-muted);
+    border-radius: 3px;
+}
+
+/* =========================================
+   Typography
+   ========================================= */
+
+h1 {
+    font-size: 2em;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+}
+
+h2 {
+    font-size: 1.25em;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: -0.01em;
+}
+
+/* Subtle accent bar for h2 */
+h2::before {
+    content: '';
+    width: 3px;
+    height: 18px;
+    background: var(--accent-primary);
+    border-radius: 2px;
+}
+
+h3 {
+    font-size: 0.95em;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 18px 0 8px 0;
+    letter-spacing: 0;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 0.95em;
+    font-weight: 400;
+    margin-bottom: 32px;
+    letter-spacing: 0.01em;
+}
+
+/* =========================================
+   Stats & Numbers
+   ========================================= */
+
+.big-stat {
+    font-size: 3em;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+    margin: 12px 0;
+    letter-spacing: -0.03em;
+}
+
+.big-stat small {
+    font-size: 0.25em;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-left: 6px;
+}
+
+/* =========================================
+   Text Styles
+   ========================================= */
+
+.copy-text {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-top: 6px;
+    font-weight: 400;
+}
+
+.highlight-text {
+    font-size: 0.95em;
+    font-weight: 500;
+    color: var(--text-primary);
+    background: var(--accent-muted);
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(37, 99, 235, 0.1);
+    line-height: 1.6;
+}
+
 .center { text-align: center; }
 
-/* 按钮样式 */
+/* =========================================
+   Buttons
+   ========================================= */
+
 .btn-main {
-    background: #fff; color: var(--accent); border: none; padding: 12px 30px;
-    border-radius: 30px; font-size: 1.1em; font-weight: bold; cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: transform 0.2s;
+    background: var(--text-primary);
+    color: #fff;
+    border: none;
+    padding: 14px 32px;
+    border-radius: var(--radius-md);
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    letter-spacing: -0.005em;
 }
-.btn-main:active { transform: scale(0.95); }
+
+.btn-main:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-main:active {
+    transform: translateY(0);
+}
+
 .btn-sub {
-    background: var(--accent); color: #fff; border: none; padding: 12px 20px;
-    border-radius: 8px; width: 100%; margin-top: 20px; cursor: pointer;
+    background: var(--accent-primary);
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    width: 100%;
+    margin-top: 16px;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: 500;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+    transition: all 0.2s ease;
 }
+
+.btn-sub:hover {
+    background: var(--accent-secondary);
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+}
+
 .btn-link {
     background: none;
     border: none;
-    color: #999;
+    color: var(--text-muted);
     cursor: pointer;
-    text-decoration: underline;
-    
-    /* --- 修改部分 --- */
-    display: block;         /* 让它变成块级元素，独占一行 */
-    margin: 15px auto 0;    /* 上边距15px，左右自动(居中)，下边距0 */
-    text-align: center;     /* 确保文字内部也居中 */
-    width: fit-content;     /* (可选) 让按钮宽度适应文字，防止太宽误触，或者删掉这行让它占满宽度方便点击 */
-}
-/* 图表容器 */
-/* =========================================
-   UI 优化：Apple 风格条形图 (Language)
-   ========================================= */
-.apple-chart-container {
-    width: 100%;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-}
-
-.apple-bar-group {
-    margin-bottom: 15px; /* 条目间距 */
-    opacity: 0;
-    animation: fadeSlideIn 0.5s forwards; /* 进场动画 */
-}
-
-/* 标签行：左边语言名，右边数值 */
-.apple-bar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 6px;
-    font-size: 0.9rem;
-    color: #444;
+    text-decoration: none;
+    font-size: 0.9em;
     font-weight: 500;
+    transition: color 0.2s ease;
+    display: block;
+    margin: 12px auto 0;
+    text-align: center;
+    width: fit-content;
 }
 
-.apple-bar-value {
-    color: var(--accent); /* 使用你的主题色 */
-    font-weight: 700;
-    font-size: 1.1em;
-}
-
-.apple-bar-unit {
-    font-size: 0.8em;
-    color: #999;
-    font-weight: normal;
-    margin-left: 2px;
-}
-
-/* 进度条轨道（灰色背景） */
-.apple-track {
-    width: 100%;
-    height: 10px; /* 稍微厚一点 */
-    background-color: rgba(0, 0, 0, 0.06); /* 淡淡的灰色 */
-    border-radius: 10px; /* 胶囊圆角 */
-    overflow: hidden;
-    position: relative;
-}
-
-/* 进度条填充（动态部分） */
-.apple-fill {
-    height: 100%;
-    width: 0%; /* 初始宽度为0，由JS控制变长 */
-    background: linear-gradient(90deg, #667eea, #764ba2); /* 你的主题渐变色 */
-    border-radius: 10px;
-    
-    /* 核心：Apple 风格的动画曲线 */
-    /* cubic-bezier(0.25, 1, 0.5, 1) 模拟 iOS 的丝滑减速效果 */
-    transition: width 1.5s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-/* 进场动画 */
-@keyframes fadeSlideIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+.btn-link:hover {
+    color: var(--accent-primary);
 }
 
 /* =========================================
-   UI 优化：第二页布局调整 (Models & Language)
+   Upload Box
    ========================================= */
 
-/* 修改 .chart-container-row 让其变身垂直布局 */
-/* 原本你是 display: flex; align-items: center; gap: 15px; */
-.chart-container-row {
+.upload-box {
     display: flex;
-    flex-direction: column; /* 关键：改为垂直排列 */
-    align-items: center;    /* 居中对齐 */
-    gap: 5px;
-    margin-bottom: 10px;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
 }
 
-.chart-half {
-    width: 100%;      /* 占满宽度 */
-    height: 70px;    /* 给环形图足够的固定高度 */
-    flex: none;       /* 禁止伸缩 */
+.file-name {
+    margin-top: 8px;
+    color: var(--text-secondary);
+    font-size: 0.9em;
+    font-weight: 500;
+    background: var(--accent-muted);
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
 }
-
-.text-half {
-    width: 100%;
-    text-align: center; /* 文字居中 */
-    font-size: 0.95em;
-}
-
-/* 让原本用于 ECharts 的容器高度自适应，因为我们要塞 HTML 进去了 */
-#languageChart {
-    height: auto !important;
-    min-height: 200px;
-}
-/* Emoji 云 */
-.emoji-cloud { display: grid; grid-template-columns:repeat(3,1fr); gap: 5px; margin: 5px 0; }
-.emoji-item { background: #f0f2f5; padding: 4px 8px; border-radius: 12px; font-size: 0.8em; display: flex; align-items: center; }
-.emoji-char { font-size: 1.2em; margin-right: 5px; }
-/* ... (找到 style.css 中的 .nav-arrows 相关代码，替换以下部分) ... */
-/* =========================================
-   导航箭头 (完整修复版)
-   ========================================= */
 
 /* =========================================
-   导航箭头 (绝对定位防抖动版)
+   Loading & Error States
    ========================================= */
 
-/* 1. 父容器：定宽高，垂直居中 */
-.nav-arrows {
-    position: fixed;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 100;
-    
-    /* 关键修改：设定固定尺寸 */
-    width: 40px; 
-    height: 100px; /* 40px(上箭头) + 20px(间距) + 40px(下箭头) */
-    
-    /* 关键修改：移除 flex 布局，改用普通块级布局 */
-    /* display: flex;  <-- 删除 */
-    /* gap: 20px;      <-- 删除 */
+.content-center {
+    text-align: center;
+    color: var(--text-primary);
 }
 
-/* 2. 箭头按钮通用样式 */
-.arrow {
+.loader {
+    border: 2px solid var(--accent-muted);
+    border-top: 2px solid var(--accent-primary);
+    border-radius: 50%;
     width: 40px;
     height: 40px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    
-    /* 关键修改：改为绝对定位 */
-    position: absolute;
-    left: 0; /* 靠左对齐容器 */
-    
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    backdrop-filter: blur(5px);
-    
-    /* 动画保持不变 */
-    animation: floatVertical 3s ease-in-out infinite;
-    transition: background 0.3s;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 20px;
 }
 
-/* 3. 分别定位上下箭头 */
-
-/* 上箭头：固定在容器顶部 */
-.arrow.up {
-    top: 0;
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-/* 下箭头：固定在容器底部 */
-.arrow.down {
-    bottom: 0;
+.error-page {
+    background: var(--card-bg);
+    border-radius: var(--radius-xl);
+    padding: 32px;
+    border: 1px solid var(--card-border);
 }
 
-/* --- 以下样式保持不变 --- */
-
-.arrow:hover {
-    background: rgba(255, 255, 255, 0.6);
+.error-page p {
+    color: var(--text-primary);
+    margin: 8px 0;
 }
 
-.arrow:active {
-    animation-play-state: paused; 
-    transform: scale(0.9) translateY(0);
+.error-page button {
+    margin-top: 16px;
 }
 
-.arrow::after {
-    content: '';
-    border: solid #fff;
-    border-width: 0 3px 3px 0;
-    padding: 5px;
-    display: block;
-}
-
-.arrow.down::after {
-    transform: rotate(45deg);
-    margin-top: -2px;
-}
-
-.arrow.up::after {
-    transform: rotate(-135deg);
-    margin-top: 2px;
-}
-
-@keyframes floatVertical {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-}
-/* 删除原本的 floatRight 和 floatLeft 动画 */
-/* Helper */
-.content-center { text-align: center; color: white; }
-.file-name { margin-top: 10px; color: rgba(255,255,255,0.8); font-size: 0.9em; }
-.loader { border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #fff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 /* =========================================
-   导出模式专用样式 (修复 html2canvas 渲染问题)
+   Chart Containers
    ========================================= */
 
-/* 当 body 有 export-mode 类时，强制修改卡片样式 */
-body.export-mode .card-container {
-    /* 核心修复：将背景临时改为不透明的纯白。
-       这解决了半透明背景在截图时可能跑到文字上方，或导致颜色混合过深的问题。 */
-    background: #ffffff !important;
-
-    /* 可选：导出时去掉阴影，让画面更干净、边缘更锐利 */
-    box-shadow: none !important;
-
-    /* 强制提升层级，确保卡片内容一定在背景之上 */
-    position: relative;
-    z-index: 99999 !important;
+.chart-box {
+    background: var(--accent-muted);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(37, 99, 235, 0.08);
 }
 
-/* 确保当前激活的页面容器也在高层级 */
-body.export-mode .page.active {
-    z-index: 99990 !important;
+.chart-box.wide {
+    padding: 16px;
 }
 
-/* 导出时隐藏所有滚动条，防止截图出现滚动条痕迹 */
-body.export-mode {
-    overflow: hidden !important;
-}
-body.export-mode .card-container {
-    overflow: hidden !important;
-}
 /* =========================================
-   字数统计双栏样式
+   Character Stats
    ========================================= */
+
 .chars-container {
     display: flex;
     align-items: center;
     justify-content: space-around;
-    background: rgba(255, 255, 255, 0.5);
-    border-radius: 12px;
-    padding: 15px 10px;
-    margin-bottom: 10px;
+    background: var(--accent-muted);
+    border-radius: var(--radius-md);
+    padding: 16px 12px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(37, 99, 235, 0.08);
 }
 
 .char-item {
@@ -351,116 +418,378 @@ body.export-mode .card-container {
 }
 
 .char-label {
-    font-size: 0.85em;
-    color: #888;
+    font-size: 0.8em;
+    color: var(--text-secondary);
     margin-bottom: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .char-num {
     font-size: 1.4em;
-    font-weight: bold;
-    font-family: 'Arial', sans-serif; /* 确保数字字体清晰 */
+    font-weight: 700;
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    letter-spacing: -0.02em;
 }
 
-/* 针对用户的样式 (深灰色) */
 .char-item.user .char-num {
-    color: #555;
+    color: var(--text-primary);
 }
 
-/* 针对 AI 的样式 (主题色/紫色) */
 .char-item.ai .char-num {
-    color: #667eea;
+    color: var(--accent-primary);
 }
 
-/* 中间的分隔线 */
 .char-divider {
     width: 1px;
-    height: 30px;
-    background-color: #ddd;
+    height: 32px;
+    background: var(--card-border);
 }
+
 /* =========================================
-   新增：Provider 选择弹窗样式
+   Stat Grid
    ========================================= */
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.stat-item {
+    background: var(--accent-muted);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    text-align: center;
+    border: 1px solid rgba(37, 99, 235, 0.08);
+    transition: background 0.2s ease;
+}
+
+.stat-item:hover {
+    background: rgba(37, 99, 235, 0.12);
+}
+
+.stat-item .label {
+    display: block;
+    font-size: 0.8em;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.stat-item .value {
+    display: block;
+    font-size: 1.8em;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* =========================================
+   Emoji Cloud
+   ========================================= */
+
+.emoji-cloud {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin: 8px 0;
+}
+
+.emoji-item {
+    background: var(--accent-muted);
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: 1px solid rgba(37, 99, 235, 0.05);
+    transition: background 0.2s ease;
+}
+
+.emoji-item:hover {
+    background: rgba(37, 99, 235, 0.12);
+}
+
+.emoji-char {
+    font-size: 1.2em;
+}
+
+/* =========================================
+   Text Group
+   ========================================= */
+
+.text-group {
+    margin-bottom: 14px;
+}
+
+.text-group h3 {
+    margin: 14px 0 6px 0;
+}
+
+/* =========================================
+   Time Chart
+   ========================================= */
+
+.time-dominant-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 16px;
+    flex: 1;
+    justify-content: center;
+}
+
+.time-chart-large {
+    width: 100%;
+    height: 240px;
+    position: relative;
+    margin-bottom: 12px;
+    border-radius: var(--radius-md);
+    padding: 12px;
+    background: var(--accent-muted);
+    border: 1px solid rgba(37, 99, 235, 0.08);
+    animation: fadeSlideIn 0.4s forwards;
+}
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================================
+   Time Records
+   ========================================= */
+
+.time-records {
+    background: var(--accent-muted);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    margin-bottom: 14px;
+    border: 1px solid rgba(37, 99, 235, 0.08);
+}
+
+.time-records .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(37, 99, 235, 0.08);
+}
+
+.time-records .stat-row:last-child {
+    border-bottom: none;
+}
+
+.time-records .stat-row span {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+
+.time-records .stat-row strong {
+    font-size: 1em;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* =========================================
+   Page 3 Special
+   ========================================= */
+
+#page3 .card-container {
+    justify-content: flex-start;
+    max-height: 850px;
+}
+
+/* =========================================
+   Action Area
+   ========================================= */
+
+.action-area {
+    margin-top: auto;
+    padding-top: 16px;
+}
+
+/* =========================================
+   Navigation Arrows
+   ========================================= */
+
+.nav-arrows {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    width: 36px;
+    height: 90px;
+}
+
+.arrow {
+    width: 36px;
+    height: 36px;
+    background: var(--card-bg);
+    border-radius: 50%;
+    position: absolute;
+    left: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    animation: floatVertical 3s ease-in-out infinite;
+    transition: all 0.2s ease;
+}
+
+.arrow.up {
+    top: 0;
+}
+
+.arrow.down {
+    bottom: 0;
+}
+
+.arrow:hover {
+    background: var(--text-primary);
+    border-color: var(--text-primary);
+}
+
+.arrow:hover::after {
+    border-color: #fff;
+}
+
+.arrow:active {
+    transform: scale(0.95);
+}
+
+.arrow::after {
+    content: '';
+    border: solid var(--text-secondary);
+    border-width: 0 2px 2px 0;
+    padding: 4px;
+    display: block;
+}
+
+.arrow.down::after {
+    transform: rotate(45deg);
+    margin-top: -1px;
+}
+
+.arrow.up::after {
+    transform: rotate(-135deg);
+    margin-top: 1px;
+}
+
+@keyframes floatVertical {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+/* =========================================
+   Provider Modal
+   ========================================= */
+
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     z-index: 10000;
     display: flex;
     justify-content: center;
     align-items: center;
-    animation: fadeIn 0.3s ease;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .modal-box {
-    background: #fff;
+    background: var(--card-bg);
     width: 90%;
-    max-width: 360px;
-    padding: 25px;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    max-width: 340px;
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     text-align: center;
-    transform: translateY(0);
-    animation: slideUp 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    animation: slideUp 0.3s ease;
+    border: 1px solid var(--card-border);
 }
 
 @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-box h3 {
+    font-size: 1.2em;
+    margin-bottom: 6px;
 }
 
 .provider-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 10px;
+    gap: 10px;
+    margin-top: 16px;
 }
 
 .provider-btn {
-    background: #f5f7fa;
-    border: 2px solid transparent;
-    border-radius: 12px;
-    padding: 15px 5px;
-    font-size: 0.95em;
-    font-weight: 600;
-    color: #555;
+    background: var(--accent-muted);
+    border: 1px solid rgba(37, 99, 235, 0.1);
+    border-radius: var(--radius-md);
+    padding: 14px 6px;
+    font-size: 0.9em;
+    font-weight: 500;
+    color: var(--text-primary);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
 }
 
 .provider-btn:hover {
-    background: #eef1f6;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    background: rgba(37, 99, 235, 0.15);
+    border-color: rgba(37, 99, 235, 0.2);
 }
 
 .provider-btn:active {
-    transform: scale(0.96);
+    transform: scale(0.98);
 }
 
-/* 选中或高亮某个平台的颜色定制（可选） */
-.provider-btn[data-type="deepseek"]:hover { border-color: #4facfe; color: #4facfe; }
-.provider-btn[data-type="qwen"]:hover { border-color: #764ba2; color: #764ba2; }
-.provider-btn[data-type="anthropic"]:hover { border-color: #d97d56; color: #d97d56; }
-.provider-btn[data-type="openai"]:hover { border-color: #10a37f; color: #10a37f; }
 /* =========================================
-   UI 优化：iOS 分段控制器 (Toggle Switch)
+   Language Toggle
    ========================================= */
+
 .lang-toggle-wrapper {
     display: flex;
     justify-content: center;
-    margin-bottom: 12px; /* 与下方图表的间距 */
-    margin-top:5px;
+    margin-bottom: 12px;
+    margin-top: 6px;
 }
 
 .lang-toggle {
-    background-color: rgba(118, 118, 128, 0.12); /* 经典的 iOS 灰色背景 */
-    border-radius: 9px;
-    padding: 0px;
+    background: var(--accent-muted);
+    border-radius: 8px;
+    padding: 3px;
     display: flex;
     position: relative;
     user-select: none;
@@ -469,214 +798,271 @@ body.export-mode .card-container {
 .lang-btn {
     border: none;
     background: transparent;
-    padding: 6px 24px;
-    font-size: 13px;
-    font-weight: 500; /* Apple 字体通常不用太粗 */
-    color: #636366;
+    padding: 6px 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
     cursor: pointer;
-    border-radius: 7px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 6px;
+    transition: all 0.2s ease;
     position: relative;
     z-index: 2;
 }
 
-/* 激活状态：白色背景 + 阴影 */
 .lang-btn.active {
-    background-color: #ffffff;
-    color: #000000;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04);
-    font-weight: 600;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .lang-btn:hover:not(.active) {
-    color: #333;
+    color: var(--text-primary);
 }
 
-/* 列表容器，用于切换时的过渡 */
 .lang-list-wrapper {
-    min-height: 180px; /* 防止切换时高度跳动 */
+    min-height: 160px;
     transition: opacity 0.2s ease;
 }
+
 /* =========================================
-   改版：横向条形图样式 (Page 2)
+   Bar Chart Styles
    ========================================= */
 
-/* 容器：不需要那么高了，改为自适应或较小的高度 */
-/* =========================================
-   复刻 GitHub 风格进度条 (Models Chart)
-   ========================================= */
-
-/* 1. 外层容器：自适应高度 */
-.models-chart-container {
+.apple-chart-container {
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 15px; /* 进度条和图例之间的距离 */
-    padding: 0 5px; /* 防止边缘太贴 */
 }
+
+.apple-bar-group {
+    margin-bottom: 14px;
+    opacity: 0;
+    animation: fadeSlideIn 0.4s forwards;
+}
+
+.apple-bar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.apple-bar-value {
+    color: var(--accent-primary);
+    font-weight: 600;
+    font-size: 1.05em;
+}
+
+.apple-bar-unit {
+    font-size: 0.8em;
+    color: var(--text-muted);
+    font-weight: normal;
+    margin-left: 2px;
+}
+
+.apple-track {
+    width: 100%;
+    height: 8px;
+    background: var(--accent-muted);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+}
+
+.apple-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent-primary);
+    border-radius: 6px;
+    transition: width 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
 /* =========================================
-   复刻 GitHub 风格进度条 (适配旧 HTML 结构)
+   GitHub Style Progress Bar
    ========================================= */
 
-/* 1. 进度条轨道 */
 .github-progress-bar {
     display: flex;
     width: 100%;
-    height: 10px; /* 细长条 */
-    background-color: #eee;
-    border-radius: 6px; /* 整体圆角 */
-    overflow: hidden;   /* 裁切内部 */
-    margin-bottom: 15px; /* 与图例的距离 */
+    height: 8px;
+    background: var(--accent-muted);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 14px;
 }
 
-/* 2. 进度条分段 */
 .github-bar-segment {
     height: 100%;
-    border-right: 2px solid #fff; /* 核心：白色微空隙 */
+    border-right: 1px solid var(--card-bg);
     box-sizing: content-box;
-    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .github-bar-segment:last-child {
     border-right: none;
 }
 
-/* 3. 图例容器 */
 .github-legend-container {
     display: flex;
-    flex-wrap: wrap; /* 允许换行 */
-    gap: 10px 20px;  /* 行距 10px，列距 20px */
+    flex-wrap: wrap;
+    gap: 8px 14px;
     justify-content: flex-start;
-    margin-bottom: 15px; /* 与下方文案的距离 */
+    margin-bottom: 14px;
 }
 
-/* 4. 图例单项 */
 .github-legend-item {
     display: flex;
     align-items: center;
-    font-size: 0.9em;
-    color: #555;
+    font-size: 0.85em;
+    color: var(--text-primary);
     font-weight: 500;
 }
 
-/* 5. 图例圆点 (GitHub 风格小圆点) */
 .github-legend-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    margin-right: 8px;
+    margin-right: 6px;
     flex-shrink: 0;
 }
 
-/* 6. 百分比文字 */
 .github-legend-percent {
-    color: #999;
-    margin-left: 6px;
+    color: var(--text-muted);
+    margin-left: 4px;
     font-size: 0.9em;
     font-weight: normal;
 }
 
-/* 7. 适配重置后的文案框样式 */
+.models-text-below,
 .models-text-reset {
-    width: 100%;
     text-align: center;
-    font-size: 0.95em;
-    color: #666;
-    background: rgba(102, 126, 234, 0.05);
-    padding: 10px;
-    border-radius: 8px;
-    line-height: 1.5;
+    font-size: 0.9em;
+    line-height: 1.6;
+    background: var(--accent-muted);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    border: 1px solid rgba(37, 99, 235, 0.08);
 }
-.models-text-below {
-    text-align: center;
-    font-size: 1em;
-    line-height: 1.5;
-    background: rgba(102, 126, 234, 0.05);
-    border-radius: 8px;
-    padding: 10px;
-}
-/* 时间图表主导布局 */
-.time-dominant-container {
+
+/* =========================================
+   Chart Container Row
+   ========================================= */
+
+.chart-container-row {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 20px;
-    flex: 1; /* 占据主要空间 */
-    justify-content: center;
+    gap: 6px;
+    margin-bottom: 10px;
 }
 
-.time-chart-large {
+.chart-half {
     width: 100%;
-    height: 240px; /* 大幅增加图表高度 */
+    height: 70px;
+    flex: none;
+}
+
+.text-half {
+    width: 100%;
+    text-align: center;
+    font-size: 0.9em;
+}
+
+/* =========================================
+   Export Mode
+   ========================================= */
+
+body.export-mode .card-container {
+    background: #ffffff !important;
+    box-shadow: none !important;
     position: relative;
-    margin-bottom: 15px;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1); /* 添加轻微阴影突出图表 */
-    border-radius: 12px;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.7); /* 半透明白色背景 */
-    animation: fadeSlideIn 0.5s forwards; /* 进场动画 */
+    z-index: 99999 !important;
+    border: none !important;
 }
 
-/* 特殊处理第三页，让时间图表更突出 */
-#page3 .card-container {
-    justify-content: flex-start; /* 内容从顶部开始排列 */
-    max-height: 900px; /* 增加最大高度以容纳更大的图表 */
+body.export-mode .page.active {
+    z-index: 99990 !important;
 }
 
-/* 时间记录样式优化 */
-.time-records {
-    background: rgba(102, 126, 234, 0.05);
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 15px;
+body.export-mode {
+    overflow: hidden !important;
 }
 
-.time-records .stat-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+body.export-mode .card-container {
+    overflow: hidden !important;
 }
 
-.time-records .stat-row:last-child {
-    border-bottom: none;
-}
-
-.time-records .stat-row span {
-    font-size: 0.95em;
-    color: #555;
-}
-
-.time-records .stat-row strong {
-    font-size: 1.05em;
-    color: #667eea;
-    font-weight: 600;
-}
 /* =========================================
-   导出辅助样式
+   No Animation for Export
    ========================================= */
 
-/* 强制关闭动画和过渡，防止截图时截到中间状态 */
-/* =========================================
-   导出辅助样式 (修正版)
-   ========================================= */
-
-/* 1. 强制关闭动画 */
-.no-animation, .no-animation * {
+.no-animation,
+.no-animation * {
     transition: none !important;
     animation: none !important;
-    transform: none !important; /* 防止浮动动画干扰 */
+    transform: none !important;
 }
 
-/* 2. 离屏渲染容器 */
+/* =========================================
+   Export Container
+   ========================================= */
+
 #exportContainer {
     position: fixed;
     top: 0;
     left: -9999px;
-    /* 【关键修改】给一个足够大的固定宽度，防止内部百分比宽度的元素塌陷 */
-    width: 1080px; 
+    width: 1080px;
     height: 1920px;
     z-index: -1;
-    background: #fff; /* 确保背景不透明 */
+    background: #fff;
     pointer-events: none;
+}
+
+/* =========================================
+   Helpers
+   ========================================= */
+
+.small-margin {
+    margin-bottom: 8px;
+}
+
+.list-copy {
+    margin-top: 8px;
+}
+
+/* =========================================
+   Responsive Design
+   ========================================= */
+
+@media (max-width: 480px) {
+    .card-container {
+        max-width: 100%;
+        border-radius: var(--radius-lg);
+        padding: 22px 18px;
+    }
+
+    h1 {
+        font-size: 1.7em;
+    }
+
+    .big-stat {
+        font-size: 2.5em;
+    }
+
+    .nav-arrows {
+        right: 12px;
+    }
+
+    .arrow {
+        width: 34px;
+        height: 34px;
+    }
+}
+
+@media (max-height: 700px) {
+    .card-container {
+        height: 95%;
+        max-height: 620px;
+    }
 }

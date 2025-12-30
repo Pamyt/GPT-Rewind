@@ -1,6 +1,23 @@
 """Utility functions for language processing."""
 import re
 from collections import defaultdict
+from langdetect import detect, LangDetectException
+
+
+def detect_language(sentence: str) -> str:
+    """Detect language of the sentence."""
+    if not sentence.strip():
+        return "unknown"
+
+    try:
+        # Check for Chinese characters dominance first as \
+            # langdetect can be tricky with short mixed texts
+        if chinese_dominant(sentence):
+            return "zh-cn"
+
+        return detect(sentence)
+    except LangDetectException:
+        return "unknown"
 
 
 def chinese_dominant(sentence: str) -> bool:

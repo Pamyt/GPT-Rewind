@@ -26,6 +26,22 @@ def chat_days(json_path: str, provider_type: ProviderType = ProviderType.DEEPSEE
 
     return answer_list
 
+def chat_months(json_path: str, provider_type: ProviderType = ProviderType.DEEPSEEK) \
+    -> List[Dict[str, Any]]:
+    """each month chat frequency"""
+
+    data = load_json(json_path)
+    data = update_data(data, provider_type=provider_type)
+
+    full_distribution = chat_frequency_distribution(data)
+    month_distribution = full_distribution["month_distribution"]
+
+    answer_list = []
+    for time, count in month_distribution.items():
+        answer_list.append({"date": time, "counts": count})
+
+    return answer_list
+
 def time_limit(json_path: str, provider_type: ProviderType = ProviderType.DEEPSEEK) \
     -> List[Dict[str, Any]]:
     """time limit for earliest and latest"""

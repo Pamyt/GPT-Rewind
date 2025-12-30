@@ -2,8 +2,8 @@
 from typing import List, Dict, Tuple
 from rewind.data_process.loading_data import load_json
 from rewind.data_process.update_data import update_data
-from rewind.utils.language_utils import (chinese_dominant, count_code_block_languages,
-                                        REFUSE_WORDS_LIST)
+from rewind.utils.language_utils import (count_code_block_languages,
+                                        REFUSE_WORDS_LIST, detect_language)
 from rewind.data_process.style_data import polite_count, emoji_count
 from rewind.utils.data_utils import iterate_fragments, iterate_fragments_with_model
 from rewind.data_process.time_data import chat_frequency_distribution, chat_themost
@@ -59,25 +59,29 @@ def count_chars(data_list: List[Dict[str, any]]) -> Dict[str, int]:
 def language_dominant_count(data_list: List[Dict[str, any]]) -> \
     Tuple[Dict[str, int], Dict[str, int]]:
     """
-    Count the number of Chinese dominant messages in the 'fragments' of each record's message.
+    Count the number of languages in the 'fragments' of each record's message.
+    Returns: (natural_language_dict, code_language_dict_placeholder)
+    Note: The second return value is legacy for compatibility but we focus on natural language here.
     """
-    chinese_dominant_dict = {}
-    else_dominant_dict = {}
+    language_dict = {}
+
+    # We will use this to track languages per model/interaction type
+    # Structure: "Model_Type": {"en": 10, "zh-cn": 5}
 
     for content, interaction_type, model_type in iterate_fragments_with_model(data_list):
         full_key = f"{model_type}_{interaction_type}"
 
-        if full_key not in chinese_dominant_dict:
-            chinese_dominant_dict[full_key] = 0
-        if full_key not in else_dominant_dict:
-            else_dominant_dict[full_key] = 0
+        if full_key not in language_dict:
+            language_dict[full_key] = {}
 
-        if chinese_dominant(content):
-            chinese_dominant_dict[full_key] += 1
-        else:
-            else_dominant_dict[full_key] += 1
+        detected_lang = detect_language(content)
 
-    return chinese_dominant_dict, else_dominant_dict
+        if detected_lang not in language_dict[full_key]:
+            language_dict[full_key][detected_lang] = 0
+
+        language_dict[full_key][detected_lang] += 1
+
+    return language_dict, {}
 
 def code_language_count(data_list: List[Dict[str, any]]) -> Dict[str, int]:
     """

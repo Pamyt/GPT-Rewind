@@ -11,12 +11,14 @@
 
 - **年度总结**：通过详细统计信息获取您的 AI 聊天历史完整概览
 - **可视化分析**：显示使用模式、时间分布和语言偏好的交互式图表
+- **CLI 命令行工具**：提供交互式菜单和丰富可视化（堆叠分布条形图）的终端界面
 - **多模型支持**：分析不同 AI 模型的对话
-- **语言检测**：识别使用的自然语言和编程语言
+- **语言检测**：高精度识别自然语言和编程语言（区分自然语言/代码）
 - **行为洞察**：揭示礼貌模式、表情符号使用和交互风格
 - **导出功能**：将您的年度总结保存为图片
 
 ## 更新日志
+- 2025/12/30 新增 CLI 命令行工具（支持交互模式、堆叠分布图及缓存机制），优化语言检测逻辑 🚀
 - 2025/12/20 修复快速开始中的错误 🐛 感谢 [@Su-Zi-Zhan](https://github.com/Su-Zi-Zhan)
 - 2025/12/19 支持 Claude 模型 🎉
 - 2025/12/19 支持 Qwen 模型 🎉
@@ -51,7 +53,33 @@ bash ./start_frontend.sh
 
 ## 使用方法
 
-### DeepSeek 用户
+### 命令行 (CLI) 使用指南 (New!)
+
+您现在可以直接在终端使用 `rewind_cli.py` 工具探索数据。
+
+1. **交互模式**：
+   直接运行脚本即可进入交互式菜单：
+   ```bash
+   python3 rewind_cli.py
+   ```
+   按照屏幕提示选择数据文件、提供商以及您想查看的分析类型。
+
+2. **命令行参数**：
+   您也可以直接运行特定命令：
+   ```bash
+   # 查看概览 (模型、语言、会话统计)
+   python3 rewind_cli.py overview --file data/your_chat_history.json --provider deepseek
+
+   # 查看时间分析 (月度频率、每小时分布)
+   python3 rewind_cli.py time --file data/your_chat_history.json --provider deepseek
+
+   # 查看风格分析 (表情符号、礼貌程度)
+   python3 rewind_cli.py style --file data/your_chat_history.json --provider deepseek
+   ```
+
+### Web 界面使用指南
+
+#### DeepSeek 用户
 
 1. **从 DeepSeek 网站下载您的聊天历史**：
    - 前往您的 DeepSeek 账户设置

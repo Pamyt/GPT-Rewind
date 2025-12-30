@@ -11,12 +11,14 @@ A comprehensive chat history analysis tool for AI conversations, providing insig
 
 - **Annual Summary**: Get a complete overview of your AI chat history with detailed statistics
 - **Visual Analytics**: Interactive charts showing usage patterns, time distributions, and language preferences
+- **CLI Frontend**: A terminal-based interface with interactive menus and rich visualizations (Stacked Bar Charts)
 - **Multi-Model Support**: Analyze conversations across different AI models
-- **Language Detection**: Identify natural languages and programming languages used
+- **Language Detection**: Identify natural languages and programming languages used with high accuracy
 - **Behavioral Insights**: Discover politeness patterns, emoji usage, and interaction styles
 - **Export Functionality**: Save your annual summary as an image
 
 ## Change Log
+- **2025/12/30**: Added CLI Frontend with interactive mode, stacked distribution charts, and improved language detection (Natural/Code separation) 🚀
 - Fix bug in quick start on 2025/12/20 🐛 Thanks for bug report from [@Su-Zi-Zhan](https://github.com/Su-Zi-Zhan)
 - Support Claude model on 2025/12/20 🎉
 - Support Qwen model on 2025/12/19 🎉
@@ -51,7 +53,33 @@ bash ./start_frontend.sh
 
 ## Usage
 
-### For DeepSeek Users
+### CLI Usage (New!)
+
+You can now explore your data directly from the terminal using the `rewind_cli.py` tool.
+
+1. **Interactive Mode**:
+   Simply run the script without arguments to enter the interactive menu:
+   ```bash
+   python3 rewind_cli.py
+   ```
+   Follow the on-screen prompts to select your data file, provider, and the type of analysis you want to see.
+
+2. **Command Line Arguments**:
+   You can also run specific commands directly:
+   ```bash
+   # View Overview (Models, Languages, Session Counts)
+   python3 rewind_cli.py overview --file data/your_chat_history.json --provider deepseek
+
+   # View Time Analysis (Monthly Frequency, Hourly Distribution)
+   python3 rewind_cli.py time --file data/your_chat_history.json --provider deepseek
+
+   # View Style Analysis (Emoji, Politeness)
+   python3 rewind_cli.py style --file data/your_chat_history.json --provider deepseek
+   ```
+
+### Web Interface Usage
+
+#### For DeepSeek Users
 
 1. **Download your chat history** from the DeepSeek website:
    - Go to your DeepSeek account settings
