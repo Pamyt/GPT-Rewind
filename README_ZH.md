@@ -62,6 +62,8 @@ bash ./start_frontend.sh
    ```bash
    python3 rewind_cli.py
    ```
+   ![交互模式](assets/usage/rewind_cli.png)
+
    按照屏幕提示选择数据文件、提供商以及您想查看的分析类型。
 
 2. **命令行参数**：
@@ -69,10 +71,16 @@ bash ./start_frontend.sh
    ```bash
    # 查看概览 (模型、语言、会话统计)
    python3 rewind_cli.py overview --file data/your_chat_history.json --provider deepseek
+   ```
+   ![概览分析](assets/usage/cli_overview.png)
 
+   ```bash
    # 查看时间分析 (月度频率、每小时分布)
    python3 rewind_cli.py time --file data/your_chat_history.json --provider deepseek
+   ```
+   ![时间分析](assets/usage/cli_time.png)
 
+   ```bash
    # 查看风格分析 (表情符号、礼貌程度)
    python3 rewind_cli.py style --file data/your_chat_history.json --provider deepseek
    ```

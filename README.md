@@ -62,6 +62,8 @@ You can now explore your data directly from the terminal using the `rewind_cli.p
    ```bash
    python3 rewind_cli.py
    ```
+   ![Interactive Mode](assets/usage/rewind_cli.png)
+
    Follow the on-screen prompts to select your data file, provider, and the type of analysis you want to see.
 
 2. **Command Line Arguments**:
@@ -69,10 +71,16 @@ You can now explore your data directly from the terminal using the `rewind_cli.p
    ```bash
    # View Overview (Models, Languages, Session Counts)
    python3 rewind_cli.py overview --file data/your_chat_history.json --provider deepseek
+   ```
+   ![Overview Analysis](assets/usage/cli_overview.png)
 
+   ```bash
    # View Time Analysis (Monthly Frequency, Hourly Distribution)
    python3 rewind_cli.py time --file data/your_chat_history.json --provider deepseek
+   ```
+   ![Time Analysis](assets/usage/cli_time.png)
 
+   ```bash
    # View Style Analysis (Emoji, Politeness)
    python3 rewind_cli.py style --file data/your_chat_history.json --provider deepseek
    ```
