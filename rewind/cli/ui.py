@@ -107,8 +107,7 @@ def print_bar_chart(data, title=None, label_key="key", value_key="value"):
     for item in data:
         try:
             val = float(item.get(value_key, 0))
-            if val > max_val:
-                max_val = val
+            max_val = max(max_val, val)
         except (ValueError, TypeError):
             pass
 
