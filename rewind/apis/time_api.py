@@ -55,8 +55,19 @@ def time_limit(json_path: str, provider_type: ProviderType = ProviderType.DEEPSE
     earliest_session = full_distribution["earliest_session"]
     latest_session = full_distribution["latest_session"]
 
+    # Extract key information from sessions for cleaner display
+    earliest_session_info = {
+        "title": earliest_session.get("title", "Unknown Title"),
+        "inserted_at": earliest_session.get("inserted_at", "Unknown Time")
+    } if earliest_session else None
+
+    latest_session_info = {
+        "title": latest_session.get("title", "Unknown Title"),
+        "inserted_at": latest_session.get("inserted_at", "Unknown Time")
+    } if latest_session else None
+
     return [{"earliest_time": earliest_time}, {"latest_time": latest_time},
-            {"earliest_session": earliest_session}, {"latest_session": latest_session}]
+            {"earliest_session": earliest_session_info}, {"latest_session": latest_session_info}]
 
 def per_hour_distribution(json_path: str, provider_type: ProviderType = ProviderType.DEEPSEEK) \
     -> Dict[Any, Any]:
