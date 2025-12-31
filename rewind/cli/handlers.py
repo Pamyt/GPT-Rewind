@@ -9,6 +9,7 @@ from rewind.cli.ui import (
     print_simple_dict,
     print_bar_chart,
     print_distribution_bar,
+    print_heatmap,
 )
 
 
@@ -152,6 +153,15 @@ def _print_monthly_frequency(file, provider_type):
         console.print("[yellow]No data available.[/yellow]")
 
 
+def _print_daily_heatmap(file, provider_type):
+    days = time_api.chat_days(file, provider_type)
+    if days:
+        print_heatmap(days, title="Daily Activity Heatmap")
+    else:
+        console.print("\n[bold underline]Daily Activity Heatmap[/bold underline]")
+        console.print("[yellow]No data available.[/yellow]")
+
+
 def _print_time_limits(file, provider_type):
     print_header("Time Limits")
     limits = time_api.time_limit(file, provider_type)
@@ -182,6 +192,7 @@ def handle_time(file, provider):
     provider_type = get_provider_enum(provider)
     try:
         _print_monthly_frequency(file, provider_type)
+        _print_daily_heatmap(file, provider_type)
         _print_time_limits(file, provider_type)
         _print_hourly_distribution(file, provider_type)
 
