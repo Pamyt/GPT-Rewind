@@ -84,6 +84,7 @@ bash ./start_frontend.sh
    # 查看风格分析 (表情符号、礼貌程度)
    python3 rewind_cli.py style --file data/your_chat_history.json --provider deepseek
    ```
+   ![风格分析](assets/usage/cli_style.png)
 
 ### Web 界面使用指南
 

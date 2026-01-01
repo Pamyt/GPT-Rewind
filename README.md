@@ -84,6 +84,7 @@ You can now explore your data directly from the terminal using the `rewind_cli.p
    # View Style Analysis (Emoji, Politeness)
    python3 rewind_cli.py style --file data/your_chat_history.json --provider deepseek
    ```
+   ![Style Analysis](assets/usage/cli_style.png)
 
 ### Web Interface Usage
 

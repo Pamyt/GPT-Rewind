@@ -10,6 +10,7 @@ from rewind.cli.ui import (
     print_bar_chart,
     print_distribution_bar,
     print_heatmap,
+    print_emoji_rect,
 )
 
 
@@ -124,8 +125,7 @@ def handle_style(file, provider):
     """Handle style analysis for the given file and provider."""
     provider_type = get_provider_enum(provider)
     try:
-        print_header("Emoji Counts")
-        print_table(style_api.emoji_counts(file, provider_type))
+        print_emoji_rect(style_api.emoji_counts(file, provider_type), title="Emoji Wall")
 
         print_header("Politeness Extent")
         print_table(style_api.polite_extent(file, provider_type))
